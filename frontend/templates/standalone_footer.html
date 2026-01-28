@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrOeye Footer Standalone</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+
+<body style="background: #000; min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end;">
+
+    <!-- ===============================================
+         FOOTER: RETRO CAMERA
+         =============================================== -->
+    <footer id="retro-camera-footer">
+        <div class="footer-grid-bg"></div>
+        <div class="spotlight" id="spotlight"></div>
+        <div class="camera-flash-overlay" id="global-flash"></div>
+
+        <main class="main-layout">
+            <div class="layout-col logo-col">
+                <div class="logo-stack" id="logo-text">
+                    <div class="logo-row">
+                        <div class="eye-o eye-o--left">
+                            <div class="eyebrow"></div>
+                            <div class="sclera">
+                                <div class="pupil"></div>
+                            </div>
+                        </div>
+                        <span class="letter">r</span>
+                        <div class="eye-o eye-o--right">
+                            <div class="eyebrow"></div>
+                            <div class="sclera">
+                                <div class="pupil"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="logo-row bottom"><span class="letter">E</span><span class="letter">Y</span><span
+                            class="letter">E</span></div>
+                </div>
+            </div>
+
+            <div class="layout-col photo-display-col" id="photo-stage-2"></div>
+
+            <div class="layout-col camera-col">
+                <div class="camera-scene" id="camera-scene">
+                    <div class="camera-body">
+                        <div class="top-housing">
+                            <div class="screw s-tl"></div>
+                            <div class="screw s-tr"></div>
+                            <div class="flash">
+                                <div class="flash-ribs"></div>
+                                <div class="flash-bulb"></div>
+                                <div class="flash-burst" id="flash-burst"></div>
+                            </div>
+                            <div class="viewfinder">
+                                <div class="vf-glass"></div>
+                                <div class="vf-led"></div>
+                            </div>
+                            <div class="lens-assembly">
+                                <div class="lens-ring-outer"></div>
+                                <!-- LENS TEXT IS NOW SVG FOR PERFECT CURVE -->
+                                <div class="lens-text-ring" id="lens-text-svg-container">
+                                    <svg viewBox="0 0 100 100">
+                                        <path d="M 50, 50 m -42, 0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0"
+                                            id="text-path-top"></path>
+                                        <text>
+                                            <textPath href="#text-path-top">OrOeye • 35mm f/1.4 • ULTRALUX ASPHERICAL
+                                            </textPath>
+                                        </text>
+                                    </svg>
+                                </div>
+                                <div class="lens-barrel">
+                                    <div class="lens-glass">
+                                        <video id="webcam" autoplay playsinline muted></video>
+                                        <svg class="aperture" viewBox="0 0 100 100">
+                                            <path class="aperture-blade" d="M50 50 L5 20 A 50 50 0 0 1 80 5 Z"></path>
+                                            <path class="aperture-blade" d="M50 50 L20 95 A 50 50 0 0 1 5 80 Z"></path>
+                                            <path class="aperture-blade" d="M50 50 L80 95 A 50 50 0 0 1 95 20 Z"></path>
+                                            <path class="aperture-blade" d="M50 50 L5 80 A 50 50 0 0 1 20 95 Z"
+                                                transform="rotate(180 50 50)"></path>
+                                            <path class="aperture-blade" d="M50 50 L80 5 A 50 50 0 0 1 95 20 Z"
+                                                transform="rotate(180 50 50)"></path>
+                                            <path class="aperture-blade" d="M50 50 L20 5 A 50 50 0 0 1 5 20 Z"
+                                                transform="rotate(180 50 50)"></path>
+                                        </svg>
+                                        <div class="lens-coating-1"></div>
+                                        <div class="lens-coating-2"></div>
+                                        <div class="lens-glare"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="lux-stripe"></div>
+                            <div class="leather-grip"></div>
+                        </div>
+                        <div class="button-layer">
+                            <div class="power-btn" id="power-btn" title="On/Off">
+                                <div class="power-led"></div>
+                            </div>
+                            <div class="shutter" id="trigger" title="Capture">
+                                <div class="shutter-btn-inner"></div>
+                            </div>
+                        </div>
+                        <div class="bottom-jaw">
+                            <div class="output-slot"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="photo-stage-1-container" id="photo-stage-1"></div>
+            </div>
+        </main>
+
+        <canvas id="proc-canvas" style="display: none;"></canvas>
+    </footer>
+
+    <!-- Main Script (Contains Footer Logic) -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Scroll Section</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* --- 1. CSS STYLES --- */
+
+        /* Basic Setup & Variables */
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --font-heading: 'Space Grotesk', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden; /* Prevent horizontal scrollbar from the track */
+        }
+
+        /* Basic Typography */
+        h1, h2, h3 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        
+        p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        /* High Impact Horizontal Scroll Section Styles */
+        .horizontal-impact {
+            /* Height controls the scroll speed/duration. 100vh = 1 screen height of scrolling. */
+            height: 500vh;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        .impact-wrapper {
+            /* This element gets pinned to the top */
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .impact-track {
+            /* This element moves horizontally */
+            display: flex;
+            height: 100%;
+            align-items: center;
+            padding-left: 10vw; /* Start offset */
+            padding-right: 10vw; /* End offset */
+            will-change: transform;
+        }
+
+        /* Individual Panels */
+        .impact-panel {
+            width: 80vw;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+            flex-shrink: 0; /* Prevent panels from shrinking */
+        }
+
+        /* Intro Panel Specifics */
+        .intro-panel {
+            width: 100vw; /* Full width for intro */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding-left: 5vw;
+        }
+
+        /* Typography & Layout */
+        .impact-title {
+            font-size: clamp(5rem, 12vw, 15rem);
+            line-height: 0.9;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 2rem;
+        }
+
+        .outline-text {
+            color: transparent;
+            -webkit-text-stroke: 2px #000;
+        }
+
+        .impact-lead {
+            font-size: clamp(1.2rem, 2vw, 2rem);
+            color: #555;
+            max-width: 600px;
+            margin-left: 1rem;
+            border-left: 3px solid #000;
+            padding-left: 2rem;
+        }
+
+        /* Feature Panels */
+        .impact-num {
+            font-size: clamp(15rem, 30vw, 40rem);
+            font-weight: 800;
+            color: #f4f4f4; /* Very subtle background number */
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            z-index: 1;
+            line-height: 1;
+            font-family: var(--font-heading);
+            user-select: none; /* Prevent text selection */
+        }
+
+        .impact-content {
+            position: relative;
+            z-index: 2;
+            margin-left: 15vw; /* Push content slightly right of the big number */
+        }
+
+        .impact-content h3 {
+            font-size: clamp(4rem, 8vw, 9rem);
+            line-height: 1;
+            color: #000;
+            margin-bottom: 1.5rem;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        .impact-content p {
+            font-size: 1.5rem;
+            color: #000;
+            max-width: 450px;
+            font-weight: 300;
+            line-height: 1.4;
+            background: #fff; /* Ensure readability over giant number */
+            padding: 0.5rem 0;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .horizontal-impact {
+                height: 400vh; /* Shorter scroll on mobile */
+            }
+
+            .impact-panel {
+                width: 100vw; /* Full width items on mobile */
+                padding: 0 5%;
+                justify-content: center;
+            }
+
+            .intro-panel {
+                align-items: center;
+                text-align: center;
+                padding-left: 0;
+            }
+
+            .impact-lead {
+                margin-left: 0;
+                border-left: none;
+                padding-left: 0;
+                border-top: 2px solid #000;
+                padding-top: 1rem;
+            }
+
+            .impact-num {
+                font-size: 50vw;
+                opacity: 0.5;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+            .impact-content {
+                margin-left: 0;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .impact-content p {
+                background: rgba(255, 255, 255, 0.8);
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- --- 2. HTML STRUCTURE --- -->
+    <section class="horizontal-impact" id="features">
+        <div class="impact-wrapper">
+            <div class="impact-track">
+                <!-- Intro Panel -->
+                <div class="impact-panel intro-panel">
+                    <h2 class="impact-title">Why<br><span class="outline-text">OroEYE?</span></h2>
+                    <p class="impact-lead">Revolutionizing oral healthcare<br>with precision AI.</p>
+                </div>
+                <!-- Feature Panels -->
+                <div class="impact-panel">
+                    <div class="impact-num">01</div>
+                    <div class="impact-content">
+                        <h3>Instant<br>Results</h3>
+                        <p>Clinical-grade analysis in seconds using deep learning algorithms.</p>
+                    </div>
+                </div>
+                <div class="impact-panel">
+                    <div class="impact-num">02</div>
+                    <div class="impact-content">
+                        <h3>98.5%<br>Accuracy</h3>
+                        <p>Validated against thousands of biopsy-confirmed cases.</p>
+                    </div>
+                </div>
+                <div class="impact-panel">
+                    <div class="impact-num">03</div>
+                    <div class="impact-content">
+                        <h3>Data<br>Privacy</h3>
+                        <p>HIPAA compliant encryption. Your medical data is safe.</p>
+                    </div>
+                </div>
+                <div class="impact-panel">
+                    <div class="impact-num">04</div>
+                    <div class="impact-content">
+                        <h3>Smart<br>Reports</h3>
+                        <p>Detailed PDF reports generated instantly for your records.</p>
+                    </div>
+                </div>
+                <div class="impact-panel">
+                    <div class="impact-num">05</div>
+                    <div class="impact-content">
+                        <h3>Tele<br>Medicine</h3>
+                        <p>Seamlessly share results with oncologists remotely.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // --- 3. JAVASCRIPT LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Register GSAP plugins
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Select the elements
+            const impactSection = document.querySelector('.horizontal-impact');
+            const impactTrack = document.querySelector('.impact-track');
+
+            // Ensure the elements exist before running the animation
+            if (impactSection && impactTrack) {
+
+                // Function to calculate the total scrollable width of the track
+                function getScrollWidth() {
+                    // We move it left, so the value is negative
+                    return -(impactTrack.scrollWidth - window.innerWidth);
+                }
+
+                // Create the GSAP animation tween
+                const tween = gsap.to(impactTrack, {
+                    x: getScrollWidth, // Animate the 'x' property to the calculated width
+                    ease: "none",      // Linear easing for a direct correlation with scroll
+                });
+
+                // Create the ScrollTrigger
+                ScrollTrigger.create({
+                    trigger: ".horizontal-impact", // The element that triggers the animation
+                    start: "top top",              // When the top of the trigger hits the top of the viewport
+                    end: "bottom bottom",          // When the bottom of the trigger hits the bottom of the viewport
+                    pin: ".impact-wrapper",        // Pin the wrapper element during the scroll
+                    animation: tween,              // Link the animation to this ScrollTrigger
+                    scrub: 1,                      // Smoothly scrubs the animation along with the scrollbar
+                    invalidateOnRefresh: true,     // Recalculates values when the window is resized
+                });
+            }
+
+        });
+    </script>
+
+</body>
+</html>

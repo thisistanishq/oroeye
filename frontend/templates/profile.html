@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | OrOeye</title>
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        .profile-page {
+            background: var(--bg-off-white);
+            min-height: 100vh;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8rem 2rem 2rem;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .profile-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .profile-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-card h2 {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-email {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-logout {
+            background: var(--danger);
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #cc0000;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-box {
+            background: var(--bg-off-white);
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .history-item {
+            background: var(--bg-off-white);
+            padding: 1rem;
+            border-left: 3px solid var(--accent-primary);
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-left-width: 4px;
+        }
+
+        .history-item.cancer {
+            border-left-color: var(--danger);
+        }
+
+        .history-item.healthy {
+            border-left-color: var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body class="profile-page">
+
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="floating-nav nav-visible">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OroEYE
+        </a>
+
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="{{ url_for('analyze') }}" class="nav-link"><i class="fa-solid fa-microscope"></i> Analysis</a>
+            <a href="{{ url_for('profile') }}" class="nav-link active"><i class="fa-solid fa-user"></i> Profile</a>
+            <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </nav>
+
+    <div class="profile-container reveal-up">
+        <div class="profile-header">
+            <h1>My Profile</h1>
+            <p>Manage your account and view your analysis history</p>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-card">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        {{ user.name[0].upper() }}
+                    </div>
+                    <div class="profile-name">{{ user.name }}</div>
+                    <div class="profile-email">{{ user.email }}</div>
+                    <a href="/logout" class="btn-logout">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.total }}</div>
+                        <div class="stat-label">Total Scans</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.cancer }}</div>
+                        <div class="stat-label">Cancer Detected</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.healthy }}</div>
+                        <div class="stat-label">Healthy Scans</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.health_score }}%</div>
+                        <div class="stat-label">Health Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h2>Recent Analysis History</h2>
+            {% if history %}
+            {% for item in history %}
+            <div class="history-item {% if item.prediction == 'Cancer' %}cancer{% else %}healthy{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 1.1rem;">{{ item.prediction.upper() }}</strong>
+                        <div style="color: var(--text-muted); margin-top: 0.3rem;">
+                            Confidence: {{ (item.confidence * 100)|round(1) }}%
+                        </div>
+                    </div>
+                    <div style="color: var(--text-muted); text-align: right;">
+                        <i class="fa-solid fa-calendar"></i> {{ item.timestamp.strftime('%Y-%m-%d') }}
+                        <br>
+                        <i class="fa-solid fa-clock"></i> {{ item.timestamp.strftime('%H:%M:%S') }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No analysis history yet. <a href="{{ url_for('analyze') }}"
+                    style="color: var(--accent-primary); font-weight: 600;">Start your first scan</a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- Footer: Bio-Tech HUD -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
+    <footer class="footer-hud">
+        <div class="footer-hud-bg"></div>
+        <div class="footer-container">
+            <!-- Col 1: Brand & Status -->
+            <div class="hud-col">
+                <div class="footer-logo">OroEYE</div>
+                <div class="system-status">
+                    <span class="pulse-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                    Advanced AI-powered oral cancer screening.
+                    Democratizing early detection with computer vision technology.
+                </p>
+            </div>
+
+            <!-- Col 2: Navigation -->
+            <div class="hud-col">
+                <h4>NAVIGATION</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
+                    </li>
+                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3: Legal -->
+            <div class="hud-col">
+                <h4>LEGAL</h4>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4: Trust -->
+            <div class="hud-col">
+                <h4>SECURITY</h4>
+                <div class="trust-badge">
+                    <div class="trust-header">
+                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
+                        <span>Encrypted Connection</span>
+                    </div>
+                    <div class="trust-text">
+                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
+                        Architecture).
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
+            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
+                    style="color: var(--success);">STABLE</span></div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        gsap.from('.reveal-up', {
+            y: 30,
+            opacity: 0,
+            duration: 1,
+            ease: 'power4.out'
+        });
+    </script>
+</body>
+
+</html>

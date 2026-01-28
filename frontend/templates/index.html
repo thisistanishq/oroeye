@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrOeye | AI Oral Cancer Detection</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Splitting CSS (For Exploding Text) -->
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css" />
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting-cells.css" />
+
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <!-- GSAP Flip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
+</head>
+
+<body>
+    <!-- =========================================
+         NEW PRELOADER: KINETIC IMPACT
+         ========================================= -->
+    <div class="scanlines"></div>
+
+    <!-- 1. WORDS LAYER -->
+    <div id="word-layer">
+        <div id="word-container">
+            <span id="dot"></span>
+            <span id="current-word">Hola</span>
+        </div>
+        <svg id="slide-svg">
+            <path id="slide-path"></path>
+        </svg>
+    </div>
+
+    <!-- 2. EYE LAYER -->
+    <div id="eye-layer">
+        <svg id="davinci-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <pattern id="techGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+                    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#222" stroke-width="2" />
+                    <rect x="55" y="55" width="4" height="4" fill="#333" />
+                </pattern>
+                <clipPath id="eye-clip">
+                    <path d="M 0,540 Q 960,-150 1920,540 Q 960,1230 0,540 Z" />
+                </clipPath>
+            </defs>
+            <g class="zoom-target" id="impact-group">
+                <g clip-path="url(#eye-clip)">
+                    <rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#techGrid)" />
+                    <g class="iris-group">
+                        <line x1="960" y1="-1000" x2="960" y2="2000" class="ink thin dashed" />
+                        <line x1="-1000" y1="540" x2="3000" y2="540" class="ink thin dashed" />
+                        <circle cx="960" cy="540" r="320" class="ink thin spin-cw" stroke-dasharray="20,20" />
+                        <circle cx="960" cy="540" r="260" class="ink heavy" />
+                        <circle cx="960" cy="540" r="190" class="ink med spin-ccw" stroke-dasharray="5,15" />
+                        <circle cx="960" cy="540" r="75" class="pupil-void" />
+                        <text x="1300" y="550" font-family="Courier New" font-weight="900" font-size="24" fill="#fff"
+                            letter-spacing="2">X:<tspan id="valX">000</tspan></text>
+                        <text x="500" y="550" font-family="Courier New" font-weight="900" font-size="24" fill="#fff"
+                            letter-spacing="2">Y:<tspan id="valY">000</tspan></text>
+                    </g>
+                    <path id="shutter-lid" d="" />
+                </g>
+                <path d="M 0,540 Q 960,-150 1920,540 Q 960,1230 0,540 Z" class="eye-border" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- 3. FLASH OVERLAY -->
+    <div id="flash"></div>
+
+    <!-- Floating Navbar -->
+    <nav class="floating-nav nav-visible">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OrOeye
+        </a>
+
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="#features" class="nav-link"><i class="fa-solid fa-star"></i> Features</a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('analyze') }}" class="nav-link"><i class="fa-solid fa-microscope"></i> Analysis</a>
+            <a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> Profile</a>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="fa-solid fa-lock"></i> Admin</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a href="{{ url_for('register') }}" class="btn"
+                style="padding: 0.5rem 1.5rem; background: var(--accent); color: white; border-radius: 50px;">
+                <i class="fa-solid fa-user-plus"></i> Get Started
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Header / Scroll Driven Animation (Hero) -->
+    <header>
+        <div class="hero">
+            <div class="content">
+                <h1>Early Detection<br /><span>Saves Lives</span></h1>
+                <p>Advanced AI-powered oral cancer screening accessible to everyone, everywhere.</p>
+                <a href="{{ url_for('analyze') }}" target="_self">Start Analysis</a>
+            </div>
+        </div>
+        <div class="sticker">
+            <div class="content">
+                <div class="panel">
+                    <!-- Cards (1-6) Preserved -->
+                    <div class="panel__row">
+                        <div class="card card--one">
+                            <div class="card__column">
+                                <div class="card__avatar"><img
+                                        src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500&auto=format&fit=crop&q=60"
+                                        alt="Doctor" /></div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image headspace"><i class="fa-solid fa-brain"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                    <div class="card__dummy">
+                                        <div class="text-wrap">
+                                            <div class="text"></div>
+                                            <div class="text"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company alexa"><i class="fa-solid fa-robot"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel__row">
+                        <div class="card card--three">
+                            <div class="card__column">
+                                <div class="card__avatar"><i class="fa-solid fa-shield-virus"
+                                        style="font-size: 1.5rem; color: #4285F4;"></i></div>
+                                <div class="card__dummy">
+                                    <div class="text-wrap">
+                                        <div class="text"></div>
+                                        <div class="text"></div>
+                                    </div>
+                                    <div class="cta"></div>
+                                </div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image youtube"><i class="fa-solid fa-video"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company slack"><i class="fa-solid fa-comments"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel__row">
+                        <div class="card card--two">
+                            <div class="card__column">
+                                <div class="card__avatar"><img
+                                        src="https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=500&auto=format&fit=crop&q=60"
+                                        alt="Analysis" /></div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image messenger"><i class="fa-solid fa-comment-medical"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company notion"><i class="fa-solid fa-file-medical"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel__row">
+                        <div class="card card--six">
+                            <div class="card__column">
+                                <div class="card__avatar"><i class="fa-solid fa-heart-pulse"
+                                        style="font-size: 1.5rem; color: #F22F46;"></i></div>
+                                <div class="card__dummy">
+                                    <div class="text-wrap">
+                                        <div class="text"></div>
+                                        <div class="text"></div>
+                                    </div>
+                                    <div class="grid">
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image paypal"><i class="fa-solid fa-credit-card"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company password"><i class="fa-solid fa-lock"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel__row">
+                        <div class="card card--five">
+                            <div class="card__column">
+                                <div class="card__avatar"><i class="fa-solid fa-dna"
+                                        style="font-size: 1.5rem; color: #1DB954;"></i></div>
+                                <div class="card__dummy">
+                                    <div class="text-wrap">
+                                        <div class="text"></div>
+                                        <div class="text"></div>
+                                    </div>
+                                    <div class="grid">
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                        <div class="grid__panel"></div>
+                                    </div>
+                                    <div class="cta"></div>
+                                </div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image calendly"><i class="fa-solid fa-calendar-check"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company bluesky"><i class="fa-solid fa-cloud"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel__row">
+                        <div class="card card--four">
+                            <div class="card__column">
+                                <div class="card__avatar"><img
+                                        src="https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=500&auto=format&fit=crop&q=60"
+                                        alt="AI" /></div>
+                            </div>
+                            <div class="card__content">
+                                <div class="card__details">
+                                    <div class="text"></div>
+                                    <div class="image instagram"><i class="fa-solid fa-camera"
+                                            style="color: white; font-size: 1.2rem;"></i></div>
+                                    <div class="text"></div>
+                                    <div class="card__dummy">
+                                        <div class="text-wrap">
+                                            <div class="text"></div>
+                                            <div class="text"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card__column">
+                                <div class="card__company x"><i class="fa-solid fa-x"
+                                        style="color: white; font-size: 1.2rem;"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroller">
+            <div class="content">
+                <div class="panel">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <div class="ring ring--under">
+            <img src="https://assets.codepen.io/605876/portal-ring.png" alt="" />
+        </div>
+        <div class="ring ring--over">
+            <img src="https://assets.codepen.io/605876/portal-ring.png" alt="" />
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ===============================================
+             RESPONSIVE HORIZONTAL SCROLL SECTION
+             =============================================== -->
+
+        <!--
+            TABLET & DESKTOP VERSION (Shortened)
+            Visible only on screens > 768px wide.
+        -->
+        <section class="tablet-and-desktop-only desktop-hscroll-section" id="features">
+            <div id="hscroll-viewport">
+                <div id="hscroll-track">
+                    <!-- 1. IMAGE: EYE SCAN / AI -->
+                    <div class="c-img">
+                        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2680&auto=format&fit=crop"
+                            alt="Eye Scan">
+                        <div class="float-tag">AI-Powered Analysis</div>
+                    </div>
+                    <!-- 2. TEXT: DETECTION (01) -->
+                    <div class="c-txt">
+                        <div class="side-lbl">OROEYE (AI)</div>
+                        <div class="txt-rail">
+                            <div class="txt-block">
+                                <h2>Detection<sup>(01)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">01</div>
+                                    <p class="p-text">OroEYE combines deep learning with a user-friendly interface to
+                                        make cancer screening accessible, accurate, and instantaneous.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Detection<sup>(01)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">01</div>
+                                    <p class="p-text">Real-time processing delivers instant results, identifying
+                                        potential oral cancer at its earliest, most treatable stages.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Detection<sup>(01)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">01</div>
+                                    <p class="p-text">Non-invasive screening using standard smartphone cameras
+                                        democratizes access to advanced diagnostics.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Detection<sup>(01)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">01</div>
+                                    <p class="p-text">Advanced computer vision detects abnormalities with high accuracy.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3. IMAGE: DOCTOR/PATIENT -->
+                    <div class="c-img">
+                        <img src="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?q=80&w=2672&auto=format&fit=crop"
+                            alt="Medical Care">
+                        <div class="float-tag">Livesaving Potential</div>
+                    </div>
+                    <!-- 4. TEXT: IMPACT (02) -->
+                    <div class="c-txt">
+                        <div class="side-lbl">OROEYE (AI)</div>
+                        <div class="txt-rail">
+                            <div class="txt-block">
+                                <h2>Impact<sup>(02)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">02</div>
+                                    <p class="p-text">Early detection can increase 5-year survival rates from 60% to
+                                        over 90%, saving countless lives globally.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Impact<sup>(02)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">02</div>
+                                    <p class="p-text">Reduces the burden on healthcare systems by decreasing late-stage
+                                        cancer treatment costs significantly.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Impact<sup>(02)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">02</div>
+                                    <p class="p-text">Accessible in remote areas with limited medical facilities,
+                                        ensuring advanced healthcare is a universal right.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Impact<sup>(02)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">02</div>
+                                    <p class="p-text">Efficient resource allocation optimizes healthcare resources by
+                                        prioritizing high-risk cases.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 5. IMAGE: FUTURE TECH -->
+                    <div class="c-img">
+                        <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=2670&auto=format&fit=crop"
+                            alt="Future DNA">
+                        <div class="float-tag">Sustainable Future</div>
+                    </div>
+                    <!-- 6. TEXT: FUTURE (03) -->
+                    <div class="c-txt">
+                        <div class="side-lbl">OROEYE (AI)</div>
+                        <div class="txt-rail">
+                            <div class="txt-block">
+                                <h2>Future<sup>(03)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">03</div>
+                                    <p class="p-text">Integration with wearable tech for continuous monitoring and
+                                        expansion to detect other types of cancers.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Future<sup>(03)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">03</div>
+                                    <p class="p-text">Reduced carbon footprint: fewer hospital visits and paperless
+                                        digital reports for planetary health.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Future<sup>(03)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">03</div>
+                                    <p class="p-text">Partnerships with global health organizations to develop mobile
+                                        apps for at-home screening.</p>
+                                </div>
+                            </div>
+                            <div class="txt-block">
+                                <h2>Future<sup>(03)</sup></h2>
+                                <div class="bot-area">
+                                    <div class="num-c">03</div>
+                                    <p class="p-text">A movement towards a future where advanced healthcare is a
+                                        universal right, not a privilege.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--
+            PHONE VERSION (mobilehscroll.html)
+            Visible only on screens <= 768px wide.
+        -->
+        <div class="phone-only">
+            <section class="horizontal-impact" id="features-mobile">
+                <div class="impact-wrapper">
+                    <div class="impact-track">
+                        <!-- Intro Panel -->
+                        <div class="impact-panel intro-panel">
+                            <h2 class="impact-title">Why<br><span class="outline-text">OroEYE?</span></h2>
+                            <p class="impact-lead">Revolutionizing oral healthcare<br>with precision AI.</p>
+                        </div>
+                        <!-- Feature Panels -->
+                        <div class="impact-panel">
+                            <div class="impact-num">01</div>
+                            <div class="impact-content">
+                                <h3>Instant<br>Results</h3>
+                                <p>Clinical-grade analysis in seconds using deep learning algorithms.</p>
+                            </div>
+                        </div>
+                        <div class="impact-panel">
+                            <div class="impact-num">02</div>
+                            <div class="impact-content">
+                                <h3>98.5%<br>Accuracy</h3>
+                                <p>Validated against thousands of biopsy-confirmed cases.</p>
+                            </div>
+                        </div>
+                        <div class="impact-panel">
+                            <div class="impact-num">03</div>
+                            <div class="impact-content">
+                                <h3>Data<br>Privacy</h3>
+                                <p>HIPAA compliant encryption. Your medical data is safe.</p>
+                            </div>
+                        </div>
+                        <div class="impact-panel">
+                            <div class="impact-num">04</div>
+                            <div class="impact-content">
+                                <h3>Smart<br>Reports</h3>
+                                <p>Detailed PDF reports generated instantly for your records.</p>
+                            </div>
+                        </div>
+                        <div class="impact-panel">
+                            <div class="impact-num">05</div>
+                            <div class="impact-content">
+                                <h3>Tele<br>Medicine</h3>
+                                <p>Seamlessly share results with oncologists remotely.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Grid Menu (Desktop) -->
+        <section class="grid-menu-section desktop-only" id="grid-gallery">
+            <div class="gm-content">
+
+                <!-- Row 1: AI Diagnostics -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">AI Diagnostics</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Artificial Intelligence / Neural Network -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Facial Scan / Biometrics -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1589254065878-42c9da997008?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Code / Data Screen -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Grad-CAM Visuals -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">Grad-CAM Visuals</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Heatmap / Thermal Imaging -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Microscopic Cells -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Data Pattern Red/Blue -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Smart Reports -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">Smart Reports</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Analytics Charts on Laptop -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Tablet with Stylus/Analysis -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Working with Data -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Patient Care -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">Patient Care</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Dental Checkup -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Doctor Reassuring Patient -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Close up Dental Tools -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 5: Telemedicine (FIXED) -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">Telemedicine</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Doctor holding Tablet (FIXED LINK) -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://media.istockphoto.com/id/943117860/vector/online-medical-consultation.jpg?s=612x612&w=0&k=20&c=nn1XoEcuDPyzdSLa0iJQgzrZcpGwzadG8Q006swSrcE=)">
+                            </div>
+                        </div>
+                        <!-- Laptop Medical Screen -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- Remote Connection -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 6: Research Data -->
+                <div class="gm-row">
+                    <div class="gm-cell gm-cell--text">
+                        <h2 class="gm-cell__title oh"><span class="oh__inner">Research Data</span></h2>
+                    </div>
+                    <div class="gm-cell gm-cell--images">
+                        <!-- Lab Test Tubes -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                        <!-- DNA Helix -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://media.springernature.com/full/springer-static/cover-hires/book/978-3-030-32316-5?as=webp)">
+                            </div>
+                        </div>
+                        <!-- Scientist in Lab -->
+                        <div class="gm-cell__img">
+                            <div class="gm-cell__img-inner"
+                                style="background-image:url(https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Stacking Cards (Mobile) -->
+        <section class="stacking-cards-section mobile-only" id="capabilities-mobile">
+            <!-- Card 1 -->
+            <div class="stack-card" style="--card-bg: #f8f9fa;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">01</div>
+                        <h2>AI Diagnostics</h2>
+                        <p>Deep learning models detect anomalies with precision.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80"
+                            alt="AI"></div>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="stack-card" style="--card-bg: #eef2f5;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">02</div>
+                        <h2>Grad-CAM</h2>
+                        <p>Heatmaps highlight suspicious regions.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=600&q=80"
+                            alt="Heatmap"></div>
+                </div>
+            </div>
+            <!-- Card 3 -->
+            <div class="stack-card" style="--card-bg: #f8f9fa;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">03</div>
+                        <h2>Reports</h2>
+                        <p>Comprehensive PDF reports generated instantly.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=600&q=80"
+                            alt="Reports"></div>
+                </div>
+            </div>
+            <!-- Card 4 -->
+            <div class="stack-card" style="--card-bg: #eef2f5;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">04</div>
+                        <h2>Patient Care</h2>
+                        <p>Bridging early detection with effective treatment.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80"
+                            alt="Patient"></div>
+                </div>
+            </div>
+            <!-- Card 5 -->
+            <div class="stack-card" style="--card-bg: #f8f9fa;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">05</div>
+                        <h2>Telemedicine</h2>
+                        <p>Remote consultation with oncologists.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://media.istockphoto.com/id/943117860/vector/online-medical-consultation.jpg?s=612x612&w=0&k=20&c=nn1XoEcuDPyzdSLa0iJQgzrZcpGwzadG8Q006swSrcE="
+                            alt="Telemedicine"></div>
+                </div>
+            </div>
+            <!-- Card 6 -->
+            <div class="stack-card" style="--card-bg: #eef2f5;">
+                <div class="stack-card-inner">
+                    <div class="stack-text">
+                        <div class="stack-num">06</div>
+                        <h2>Research</h2>
+                        <p>Contributing to global medical databases.</p>
+                    </div>
+                    <div class="stack-image"><img
+                            src="https://media.springernature.com/full/springer-static/cover-hires/book/978-3-030-32316-5?as=webp"
+                            alt="Research"></div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <!-- Title Text -->
+            <h1>
+                <span class="left">for the</span>
+                <span class="right">planet</span>
+            </h1>
+
+            <!-- Background and Zooming Front Images -->
+            <div class="section__media">
+                <div class="section__media__back">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Background" />
+                </div>
+
+                <!-- Slices of the main image for the parallax effect -->
+                <div class="section__media__front front-1">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 1" />
+                </div>
+                <div class="section__media__front front-2">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 2" />
+                </div>
+                <div class="section__media__front front-3">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 3" />
+                </div>
+                <div class="section__media__front front-4">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 4" />
+                </div>
+                <div class="section__media__front front-5">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 5" />
+                </div>
+                <div class="section__media__front front-6">
+                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+                        alt="Front 6" />
+                </div>
+            </div>
+
+            <!-- Floating Small Images (The cloud of images that fly out) -->
+            <div class="section__images">
+                <!-- 1. Medical Report (Clipboard) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Clipboard/3D/clipboard_3d.png"
+                    alt="Medical Report">
+
+                <!-- 2. Microscope (Lab Equipment) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Microscope/3D/microscope_3d.png"
+                    alt="Microscope">
+
+                <!-- 3. Test Tube (Laboratory) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Test%20tube/3D/test_tube_3d.png"
+                    alt="Test Tube">
+
+                <!-- 4. Syringe (Hospital/Vaccine) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Syringe/3D/syringe_3d.png"
+                    alt="Syringe">
+
+                <!-- 5. Tooth (Dental/Medical) - REPLACED DNA -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Tooth/3D/tooth_3d.png"
+                    alt="Tooth">
+
+                <!-- 6. Pill (Medicine/Pharmacy) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Pill/3D/pill_3d.png"
+                    alt="Pill">
+
+                <!-- 7. Stethoscope (Doctor/Hospital) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Stethoscope/3D/stethoscope_3d.png"
+                    alt="Stethoscope">
+
+                <!-- 8. Drop of Blood (Hematology/Report) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Drop%20of%20blood/3D/drop_of_blood_3d.png"
+                    alt="Blood Sample">
+
+                <!-- 9. Anatomical Heart (Cardiology) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Anatomical%20heart/3D/anatomical_heart_3d.png"
+                    alt="Heart">
+
+                <!-- 10. Lab Coat (Medical Staff) -->
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@latest/assets/Lab%20coat/3D/lab_coat_3d.png"
+                    alt="Lab Coat">
+            </div>
+        </section>
+
+
+    </main>
+
+    <!-- ===============================================
+     FOOTER: BIO-TECH HUD
+     =============================================== -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
+    <footer class="footer-hud">
+        <div class="footer-hud-bg"></div>
+        <div class="footer-container">
+            <!-- Col 1: Brand & Status -->
+            <div class="hud-col">
+                <div class="footer-logo">OroEYE</div>
+                <div class="system-status">
+                    <span class="pulse-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                    Advanced AI-powered oral cancer screening.
+                    Democratizing early detection with computer vision technology.
+                </p>
+            </div>
+
+            <!-- Col 2: Navigation -->
+            <div class="hud-col">
+                <h4>NAVIGATION</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
+                    </li>
+                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3: Legal -->
+            <div class="hud-col">
+                <h4>LEGAL</h4>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4: Trust -->
+            <div class="hud-col">
+                <h4>SECURITY</h4>
+                <div class="trust-badge">
+                    <div class="trust-header">
+                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
+                        <span>Encrypted Connection</span>
+                    </div>
+                    <div class="trust-text">
+                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
+                        Architecture).
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
+            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
+                    style="color: var(--success);">STABLE</span></div>
+        </div>
+    </footer>
+
+    <!-- Splitting JS -->
+    <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    <!-- Lenis Scroll (Optional for smooth scroll, good for text effects) -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <!-- Main Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

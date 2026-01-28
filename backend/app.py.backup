@@ -1,0 +1,553 @@
+import os
+import numpy as np
+import cv2
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# Try to import TensorFlow
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model, Model
+    from tensorflow.keras.preprocessing import image
+    TF_AVAILABLE = True
+except ImportError:
+    print("WARNING: TensorFlow not available. ML model will be disabled.")
+    TF_AVAILABLE = False
+    tf = None
+
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, session, make_response
+from werkzeug.utils import secure_filename
+from flask_cors import CORS
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from datetime import datetime, timedelta
+from flask_pymongo import PyMongo
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from bson.objectid import ObjectId
+from dotenv import load_dotenv
+from functools import wraps
+import time
+import traceback
+import openai
+
+# Load environment variables
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path=dotenv_path, override=True)
+
+# --- Configuration ---
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+app = Flask(__name__, 
+            template_folder=os.path.join(BASE_DIR, '../frontend/templates'), 
+            static_folder=os.path.join(BASE_DIR, '../frontend/static'))
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+mongo = PyMongo(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Initialize OpenAI
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    try:
+        openai.api_key = OPENAI_API_KEY
+    except Exception as e:
+        print(f"Error initializing OpenAI: {str(e)}")
+
+class User(UserMixin):
+    def __init__(self, user_data):
+        self.id = str(user_data['_id'])
+        self.name = user_data.get('name', 'User')
+        self.email = user_data.get('email', '')
+        self.password = user_data.get('password', '')
+        self.role = user_data.get('role', 'user')
+        self._is_active = user_data.get('is_active', True)
+        self.created_at = user_data.get('created_at', datetime.now())
+    
+    @property
+    def is_active(self): return self._is_active
+    def is_admin(self): return self.role == 'admin' or self.email == 'admin@oroeye'
+
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id == 'admin_id_secure':
+        return User({'_id': 'admin_id_secure', 'name': 'Administrator', 'email': 'admin@oroeye', 'role': 'admin'})
+    try:
+        user_data = mongo.db.users.find_one({'_id': ObjectId(user_id)})
+        if user_data and user_data.get('is_active', True): return User(user_data)
+    except: pass
+    return None
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated: return redirect(url_for('login'))
+        if not current_user.is_admin(): return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+UPLOAD_FOLDER = "../frontend/static/uploads"
+GRADCAM_FOLDER = "../frontend/static/gradcam"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["GRADCAM_FOLDER"] = GRADCAM_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(GRADCAM_FOLDER, exist_ok=True)
+
+MODEL_PATH = "model/best_model.keras"
+model = None
+if TF_AVAILABLE:
+    try:
+        model = load_model(MODEL_PATH)
+        print("Model loaded successfully.")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+
+# --- Helper Functions ---
+def make_prediction(img_path):
+    if not TF_AVAILABLE or model is None: return "Model Error", 0.0
+    img = image.load_img(img_path, target_size=(299, 299))
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array /= 255.0
+    prediction = model.predict(img_array)
+    confidence = float(prediction[0][0])
+    return ("Cancer", 1 - confidence) if confidence < 0.5 else ("Non-Cancerous", confidence)
+
+def generate_gradcam(img_path, original_img_name):
+    if not TF_AVAILABLE or model is None: return None
+    try:
+        img = image.load_img(img_path, target_size=(299, 299))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array /= 255.0
+
+        last_conv_layer_name = None
+        for layer in reversed(model.layers):
+            if isinstance(layer, tf.keras.layers.Conv2D):
+                last_conv_layer_name = layer.name
+                break
+        if last_conv_layer_name is None: return None
+
+        grad_model = Model(inputs=[model.inputs], outputs=[model.get_layer(last_conv_layer_name).output, model.output])
+        with tf.GradientTape() as tape:
+            conv_outputs, predictions = grad_model(img_array)
+            loss = predictions[:, 0]
+        
+        grads = tape.gradient(loss, conv_outputs)
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+        conv_outputs = conv_outputs[0]
+        heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
+        heatmap = tf.squeeze(heatmap)
+        heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+        heatmap = heatmap.numpy()
+
+        img_cv = cv2.imread(img_path)
+        if img_cv is None:
+            from PIL import Image as PILImage
+            pil_img = PILImage.open(img_path)
+            img_cv = np.array(pil_img)
+            img_cv = cv2.cvtColor(img_cv, cv2.COLOR_RGB2BGR)
+        
+        heatmap = cv2.resize(heatmap, (img_cv.shape[1], img_cv.shape[0]))
+        heatmap = np.uint8(255 * heatmap)
+        heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+        superimposed_img = heatmap * 0.4 + img_cv
+        
+        gradcam_filename = f"gradcam_{original_img_name}"
+        gradcam_path = os.path.join(app.config["GRADCAM_FOLDER"], gradcam_filename)
+        cv2.imwrite(gradcam_path, superimposed_img)
+        return gradcam_filename
+    except Exception as e:
+        print(f"GradCAM Error: {e}")
+        return None
+
+# --- FAIL-SAFE PDF GENERATION ---
+def create_pdf_report(data):
+    from PIL import Image as PILImage
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import Paragraph, Spacer, Image as PlatImage, Table, TableStyle
+    from reportlab.lib.units import inch
+    
+    buffer = io.BytesIO()
+    
+    try:
+        # Set up the document
+        doc = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        styles = getSampleStyleSheet()
+        
+        # Add logo and header
+        doc.setFont("Helvetica-Bold", 24)
+        doc.drawString(50, height - 60, "OroEYE")
+        doc.setFont("Helvetica", 9)
+        doc.drawString(50, height - 75, "AI-Powered Oral Cancer Detection System")
+        
+        # Add report info
+        doc.setFont("Helvetica", 8)
+        doc.drawString(50, height - 100, f"Report Date: {datetime.now().strftime('%B %d, %Y at %H:%M')}")
+        doc.drawString(50, height - 115, f"Analysis Model: InceptionResNetV2")
+        
+        # Patient info
+        if 'user_name' in data:
+            doc.drawString(50, height - 130, f"Patient: {data['user_name']}")
+        if 'user_email' in data:
+            doc.drawRightString(width - 50, height - 130, f"Email: {data['user_email']}")
+        
+        # Draw line separator
+        doc.line(50, height - 145, width - 50, height - 145)
+        
+        # Diagnosis Result
+        doc.setFont("Helvetica-Bold", 14)
+        doc.drawString(50, height - 170, "DIAGNOSIS RESULT")
+        
+        # Diagnosis box
+        prediction = data.get('prediction', 'Unknown')
+        is_cancer = not ('Non' in prediction or 'Healthy' in prediction)
+        
+        # Set colors based on diagnosis
+        status_color = colors.green if not is_cancer else colors.red
+        
+        # Draw status box
+        doc.setFillColor(colors.lightgrey)
+        doc.rect(50, height - 220, width - 100, 40, fill=1, stroke=0)
+        
+        doc.setFont("Helvetica-Bold", 12)
+        doc.setFillColor(colors.black)
+        doc.drawString(60, height - 205, "Status:")
+        
+        doc.setFillColor(status_color)
+        doc.setFont("Helvetica-Bold", 14)
+        doc.drawString(60, height - 225, prediction.upper())
+        
+        # Add confidence
+        try:
+            conf = float(data.get('confidence', 0)) * 100
+            doc.setFillColor(colors.black)
+            doc.setFont("Helvetica", 10)
+            doc.drawRightString(width - 60, height - 205, f"{conf:.1f}% Confidence")
+        except:
+            pass
+        
+        # Visual Analysis Section
+        doc.setFillColor(colors.black)
+        doc.setFont("Helvetica-Bold", 14)
+        doc.drawString(50, height - 260, "VISUAL ANALYSIS")
+        
+        try:
+            filename = data.get('filename')
+            gradcam = data.get('gradcam')
+            
+            if filename and gradcam:
+                orig_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                grad_path = os.path.join(app.config['GRADCAM_FOLDER'], gradcam)
+                
+                if os.path.exists(orig_path) and os.path.exists(grad_path):
+                    # Load and resize images
+                    img1 = PILImage.open(orig_path).convert('RGB')
+                    img2 = PILImage.open(grad_path).convert('RGB')
+                    
+                    # Calculate aspect ratio for images
+                    img_width = 250
+                    aspect_ratio = img1.size[1] / img1.size[0]
+                    img_height = int(img_width * aspect_ratio)
+                    
+                    # Adjust height if too large
+                    max_height = 200
+                    if img_height > max_height:
+                        img_height = max_height
+                    
+                    # Convert to memory buffers
+                    b1 = io.BytesIO()
+                    img1.save(b1, format='JPEG', quality=90)
+                    b1.seek(0)
+                    
+                    b2 = io.BytesIO()
+                    img2.save(b2, format='JPEG', quality=90)
+                    b2.seek(0)
+                    
+                    # Draw images side by side with labels
+                    y_pos = height - 300 - img_height
+                    
+                    # Original Image
+                    doc.drawImage(ImageReader(b1), 50, y_pos, width=img_width, height=img_height)
+                    doc.setFont("Helvetica", 10)
+                    doc.drawString(50, y_pos - 15, "Original Tissue Sample")
+                    
+                    # Heatmap Image
+                    doc.drawImage(ImageReader(b2), 320, y_pos, width=img_width, height=img_height)
+                    doc.drawString(320, y_pos - 15, "AI Attention Heatmap (Grad-CAM)")
+                    
+                    # Move y position for clinical recommendations
+                    y_pos = y_pos - 50
+                else:
+                    doc.setFont("Helvetica", 10)
+                    doc.setFillColor(colors.red)
+                    doc.drawString(50, height - 300, "Error: Image files not found on server.")
+                    y_pos = height - 320
+            else:
+                y_pos = height - 320
+                
+        except Exception as img_e:
+            doc.setFont("Helvetica", 10)
+            doc.setFillColor(colors.red)
+            doc.drawString(50, height - 300, f"Image Load Error: {str(img_e)}")
+            y_pos = height - 320
+        
+        # Clinical Recommendations
+        doc.setFillColor(colors.black)
+        doc.setFont("Helvetica-Bold", 14)
+        doc.drawString(50, y_pos - 30, "CLINICAL RECOMMENDATIONS")
+        
+        # Add appropriate recommendations based on diagnosis
+        recommendations = []
+        if is_cancer:
+            recommendations = [
+                "1. Immediate consultation with an oral surgeon or oncologist is strongly recommended.",
+                "2. A biopsy should be performed to confirm the diagnosis.",
+                "3. Consider advanced imaging (CT/MRI) to evaluate the extent of the lesion.",
+                "4. Discuss treatment options including surgery, radiation, and chemotherapy.",
+                "5. Schedule regular follow-up appointments to monitor progression.",
+                "6. Quit tobacco and alcohol use immediately if applicable.",
+                "7. Seek support from a multidisciplinary cancer care team."
+            ]
+        else:
+            recommendations = [
+                "1. Continue regular dental check-ups every 6 months.",
+                "2. Maintain good oral hygiene practices.",
+                "3. Avoid tobacco and excessive alcohol consumption.",
+                "4. Monitor for any changes in the oral cavity and report immediately.",
+                "5. Use a soft-bristled toothbrush and non-alcoholic mouthwash.",
+                "6. Stay hydrated to maintain good oral health.",
+                "7. Consider an annual oral cancer screening if you have risk factors."
+            ]
+        
+        # Add recommendations to PDF
+        doc.setFont("Helvetica", 10)
+        y_pos -= 50
+        for i, rec in enumerate(recommendations):
+            if y_pos < 150:  # Check if we need a new page
+                doc.showPage()
+                y_pos = height - 50
+            doc.drawString(60, y_pos, rec)
+            y_pos -= 20
+        
+        # Add disclaimer
+        y_pos = 100
+        doc.setFont("Helvetica-Bold", 10)
+        doc.drawString(50, y_pos, "IMPORTANT DISCLAIMER:")
+        
+        disclaimer_text = [
+            "This report is generated by an AI system for screening purposes only and does NOT constitute a medical diagnosis. ",
+            "A licensed medical professional should be consulted for proper clinical evaluation and treatment decisions. ",
+            "The AI model has limitations and should be used as a supplementary tool, not a replacement for professional judgment."
+        ]
+        
+        doc.setFont("Helvetica", 8)
+        y_pos -= 15
+        for line in disclaimer_text:
+            doc.drawString(50, y_pos, line)
+            y_pos -= 12
+        
+        # Add footer
+        doc.setFont("Helvetica", 7)
+        doc.drawString(50, 40, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        doc.drawCentredString(width/2, 20, "OroEYE Report - Confidential Medical Document")
+        
+        doc.save()
+
+    except Exception as e:
+        # --- EMERGENCY FALLBACK PDF ---
+        # If generation fails, create a valid PDF with the error message
+        # This prevents returning JSON to a PDF download request
+        print(f"PDF ERROR: {e}")
+        buffer.close()
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter)
+        c.setFont("Helvetica-Bold", 20)
+        c.drawString(100, 600, "Error Generating Report")
+        c.setFont("Helvetica", 12)
+        c.drawString(100, 550, f"Details: {str(e)}")
+        c.save()
+
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f"OroEYE_Report_{datetime.now().strftime('%Y%m%d')}.pdf"
+    )
+
+# --- Routes ---
+@app.route('/')
+def home(): return render_template('index.html')
+
+@app.route('/analyze')
+def analyze(): return render_template('analysis.html')
+
+@app.route('/research')
+def research(): return render_template('research.html')
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        try:
+            mongo.db.contact_messages.insert_one({
+                'name': request.form.get('name'), 'email': request.form.get('email'),
+                'message': request.form.get('message'), 'timestamp': datetime.now()
+            })
+            flash('Message sent!', 'success')
+        except: flash('Error sending message', 'danger')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
+
+@app.route('/faq')
+def faq(): return render_template('faq.html')
+
+@app.route('/monitor')
+def monitor(): return render_template('monitor.html')
+
+# --- Auth ---
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        if mongo.db.users.find_one({'email': request.form.get('email')}):
+            flash('Email exists', 'danger'); return redirect(url_for('register'))
+        hashed = bcrypt.generate_password_hash(request.form.get('password')).decode('utf-8')
+        mongo.db.users.insert_one({'name': request.form.get('name'), 'email': request.form.get('email'), 'password': hashed, 'role': 'user', 'is_active': True})
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if email == 'admin@oroeye' and password == os.getenv("ADMIN_PASSWORD", "projectoraleye"):
+            user = mongo.db.users.find_one({'email': 'admin@oroeye'})
+            if not user:
+                mongo.db.users.insert_one({'name': 'Admin', 'email': 'admin@oroeye', 'password': bcrypt.generate_password_hash(password).decode('utf-8'), 'role': 'admin'})
+                user = mongo.db.users.find_one({'email': 'admin@oroeye'})
+            login_user(User(user))
+            return redirect(url_for('admin_dashboard'))
+        
+        user = mongo.db.users.find_one({'email': email})
+        if user and bcrypt.check_password_hash(user['password'], password):
+            login_user(User(user))
+            return redirect(url_for('home'))
+        flash('Invalid credentials', 'danger')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout(): logout_user(); return redirect(url_for('home'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    history = list(mongo.db.history.find({'user_id': current_user.id}).sort('timestamp', -1))
+    stats = {'total': len(history), 'cancer': sum(1 for h in history if h['prediction'] == 'Cancer')}
+    stats['healthy'] = stats['total'] - stats['cancer']
+    return render_template('profile.html', user=current_user, history=history, stats=stats)
+
+# --- Admin ---
+@app.route('/admin')
+@admin_required
+def admin_dashboard(): return render_template('admin.html')
+@app.route('/admin/users')
+@admin_required
+def admin_users_page(): return render_template('admin_users.html')
+@app.route('/admin/analytics')
+@admin_required
+def admin_analytics_page(): return render_template('admin_analytics.html')
+@app.route('/admin/logs')
+@admin_required
+def admin_logs_page(): return render_template('admin_logs.html')
+@app.route('/admin/messages')
+@admin_required
+def admin_messages_page(): return render_template('admin_messages.html')
+@app.route('/admin/ai')
+@admin_required
+def admin_ai_page(): return render_template('admin_ai.html')
+
+# --- API ---
+@app.route('/api/admin/users')
+@admin_required
+def get_users():
+    users = [{'id': str(u['_id']), 'name': u.get('name'), 'email': u.get('email'), 'role': u.get('role'), 'is_active': u.get('is_active')} for u in mongo.db.users.find()]
+    return jsonify({'users': users})
+
+@app.route('/api/admin/users/<uid>', methods=['PUT', 'DELETE'])
+@admin_required
+def manage_user(uid):
+    if request.method == 'DELETE': mongo.db.users.delete_one({'_id': ObjectId(uid)})
+    else: mongo.db.users.update_one({'_id': ObjectId(uid)}, {'$set': {'is_active': request.json.get('is_active')}})
+    return jsonify({'success': True})
+
+@app.route('/admin/stats')
+@admin_required
+def admin_stats():
+    return jsonify({
+        'total_users': mongo.db.users.count_documents({}),
+        'total_scans': mongo.db.history.count_documents({}),
+        'cancer_count': mongo.db.history.count_documents({'prediction': 'Cancer'})
+    })
+
+@app.route('/api/admin/ai-insights', methods=['POST'])
+@admin_required
+def admin_ai_insights():
+    if not OPENAI_API_KEY: return jsonify({'error': 'AI unavailable'}), 503
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": f"System Status: {mongo.db.history.count_documents({})} scans. Query: {request.json.get('query')}"}]
+        )
+        return jsonify({'insights': response.choices[0].message.content})
+    except Exception as e: return jsonify({'error': str(e)}), 500
+
+# --- Prediction & Report ---
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        file = request.files.get('file')
+        if not file or file.filename == '': return jsonify({'error': 'No file'}), 400
+        
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        pred, conf = make_prediction(filepath)
+        grad = generate_gradcam(filepath, filename)
+        
+        mongo.db.history.insert_one({
+            'user_id': current_user.id if current_user.is_authenticated else 'anonymous',
+            'filename': filename, 'prediction': pred, 'confidence': float(conf),
+            'gradcam': grad, 'timestamp': datetime.now()
+        })
+        return jsonify({'prediction': pred, 'confidence': conf, 'filename': filename, 'gradcam': grad})
+    except Exception as e: return jsonify({'error': str(e)}), 500
+
+@app.route('/download_report', methods=['POST'])
+@login_required
+def download_report():
+    data = request.json
+    if not data: 
+        return jsonify({'error': 'No data'}), 400
+    data['user_name'] = current_user.name
+    data['user_email'] = current_user.email
+    
+    # Generate and return the PDF directly
+    return create_pdf_report(data)
+
+if __name__ == '__main__':
+    # Using port 5001 as the default port
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False)

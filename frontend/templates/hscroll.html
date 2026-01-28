@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OroEYE | Final Fixed Version</title>
+    <style>
+        /* --- 1. SETTINGS --- */
+        :root {
+            --w-img: 45vw;
+            /* Wide Images */
+            --w-txt: 30vw;
+            /* Narrow White Strips */
+            --font-head: 'Times New Roman', Times, serif;
+            --font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --ease: 0.08;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            color: #000;
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* --- 2. MAIN TRACK --- */
+        #viewport {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #track {
+            display: flex;
+            height: 100%;
+            width: max-content;
+            will-change: transform;
+        }
+
+        /* --- 3. IMAGE COMPONENT --- */
+        .c-img {
+            width: var(--w-img);
+            height: 100%;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .c-img img {
+            filter: brightness(0.8) contrast(1.1);
+        }
+
+        .float-tag {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            z-index: 2;
+            mix-blend-mode: overlay;
+            text-transform: uppercase;
+        }
+
+        /* --- 4. WHITE TEXT COMPONENT (FIXED) --- */
+        .c-txt {
+            width: var(--w-txt);
+            height: 100%;
+            background: #ffffff;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-right: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .side-lbl {
+            position: absolute;
+            right: 1.2rem;
+            top: 2rem;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: #aaa;
+            z-index: 10;
+        }
+
+        .txt-rail {
+            width: 100%;
+            will-change: transform;
+            padding-top: 5vh;
+        }
+
+        .txt-block {
+            height: 90vh;
+            width: 100%;
+            padding: 3rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-bottom: 1px dashed #e0e0e0;
+            position: relative;
+        }
+
+        .txt-block h2 {
+            font-family: var(--font-head);
+            font-size: 3.5rem;
+            font-weight: 400;
+            text-align: center;
+            line-height: 1;
+            margin-top: 2rem;
+        }
+
+        .txt-block h2 sup {
+            font-size: 0.4em;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+
+        .bot-area {
+            display: flex;
+            align-items: baseline;
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .num-c {
+            min-width: 32px;
+            height: 32px;
+            border: 1px solid #111;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .p-text {
+            font-size: 0.7rem;
+            line-height: 1.5;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #111;
+            text-align: left;
+            letter-spacing: 0.03em;
+        }
+
+        /* --- 5. WIDE SCROLL SECTIONS --- */
+        .c-wide {
+            height: 100%;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-stk {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100%;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .bg-stk.is-visible {
+            opacity: 1;
+        }
+
+        .ov-blue {
+            position: absolute;
+            inset: 0;
+            background: rgba(20, 50, 160, 0.6);
+            mix-blend-mode: multiply;
+        }
+
+        .ov-dark {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            mix-blend-mode: multiply;
+        }
+
+        .con-stk {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 10;
+            color: white;
+            padding: 5vw;
+        }
+
+        .h-b {
+            text-align: center;
+            margin: 25vh 0 10vh 0;
+        }
+
+        .h-b h2 {
+            font-size: 6rem;
+            font-family: var(--font-head);
+        }
+
+        .g-b {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            padding-bottom: 20vh;
+        }
+
+        .colb span {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .colb b {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            margin-bottom: 15px;
+        }
+
+        .l-s {
+            display: flex;
+            width: 100%;
+            margin-top: 30vh;
+        }
+
+        .ls-l {
+            width: 35%;
+        }
+
+        .ls-r {
+            width: 65%;
+            padding-bottom: 20vh;
+        }
+
+        .st {
+            font-family: var(--font-head);
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+        }
+
+        .st.active {
+            opacity: 1;
+        }
+
+        .sr {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .dot {
+            width: 30px;
+            height: 30px;
+            border: 1px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 0.65rem;
+        }
+
+        /* --- 6. FOOTER --- */
+        .c-foot {
+            width: 100vw;
+            height: 100%;
+            background: #080808;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 20;
+        }
+
+        .fb {
+            font-size: 8rem;
+            margin-bottom: 2rem;
+            font-family: var(--font-head);
+        }
+
+        .ft {
+            max-width: 600px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 4rem;
+            line-height: 1.6;
+            text-transform: uppercase;
+        }
+
+        .fbtn {
+            border: 1px solid white;
+            padding: 12px 35px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="viewport">
+        <div id="track">
+
+            <!-- 1. IMAGE: EYE SCAN / AI -->
+            <div class="c-img">
+                <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2680&auto=format&fit=crop"
+                    alt="Eye Scan">
+                <div class="float-tag">AI-Powered Analysis</div>
+            </div>
+
+            <!-- 2. TEXT: DETECTION (01) -->
+            <div class="c-txt">
+                <div class="side-lbl">OROEYE (AI)</div>
+                <div class="txt-rail">
+                    <div class="txt-block">
+                        <h2>Detection<sup>(01)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">01</div>
+                            <p class="p-text">OroEYE combines deep learning with a user-friendly interface to make
+                                cancer screening accessible, accurate, and instantaneous.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Detection<sup>(01)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">01</div>
+                            <p class="p-text">Real-time processing delivers instant results, identifying potential oral
+                                cancer at its earliest, most treatable stages.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Detection<sup>(01)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">01</div>
+                            <p class="p-text">Non-invasive screening using standard smartphone cameras democratizes
+                                access to advanced diagnostics.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Detection<sup>(01)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">01</div>
+                            <p class="p-text">Advanced computer vision detects abnormalities with high accuracy.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. IMAGE: DOCTOR/PATIENT -->
+            <div class="c-img">
+                <img src="https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?q=80&w=2672&auto=format&fit=crop"
+                    alt="Medical Care">
+                <div class="float-tag">Livesaving Potential</div>
+            </div>
+
+            <!-- 4. TEXT: IMPACT (02) -->
+            <div class="c-txt">
+                <div class="side-lbl">OROEYE (AI)</div>
+                <div class="txt-rail">
+                    <div class="txt-block">
+                        <h2>Impact<sup>(02)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">02</div>
+                            <p class="p-text">Early detection can increase 5-year survival rates from 60% to over 90%,
+                                saving countless lives globally.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Impact<sup>(02)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">02</div>
+                            <p class="p-text">Reduces the burden on healthcare systems by decreasing late-stage cancer
+                                treatment costs significantly.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Impact<sup>(02)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">02</div>
+                            <p class="p-text">Accessible in remote areas with limited medical facilities, ensuring
+                                advanced healthcare is a universal right.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Impact<sup>(02)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">02</div>
+                            <p class="p-text">Efficient resource allocation optimizes healthcare resources by
+                                prioritizing high-risk cases.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. IMAGE: FUTURE TECH -->
+            <div class="c-img">
+                <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=2670&auto=format&fit=crop"
+                    alt="Future DNA">
+                <div class="float-tag">Sustainable Future</div>
+            </div>
+
+            <!-- 6. TEXT: FUTURE (03) -->
+            <div class="c-txt">
+                <div class="side-lbl">OROEYE (AI)</div>
+                <div class="txt-rail">
+                    <div class="txt-block">
+                        <h2>Future<sup>(03)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">03</div>
+                            <p class="p-text">Integration with wearable tech for continuous monitoring and expansion to
+                                detect other types of cancers.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Future<sup>(03)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">03</div>
+                            <p class="p-text">Reduced carbon footprint: fewer hospital visits and paperless digital
+                                reports for planetary health.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Future<sup>(03)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">03</div>
+                            <p class="p-text">Partnerships with global health organizations to develop mobile apps for
+                                at-home screening.</p>
+                        </div>
+                    </div>
+                    <div class="txt-block">
+                        <h2>Future<sup>(03)</sup></h2>
+                        <div class="bot-area">
+                            <div class="num-c">03</div>
+                            <p class="p-text">A movement towards a future where advanced healthcare is a universal
+                                right, not a privilege.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. CAPABILITIES (Wide Scroll) -->
+            <div class="c-wide" style="width: 250vw;" id="sec-marques">
+                <div class="bg-stk" id="bg-m">
+                    <!-- FIXED IMAGE LINK -->
+                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=2670&auto=format&fit=crop"
+                        alt="Medical Technology">
+                    <div class="ov-blue"></div>
+                </div>
+                <div class="con-stk" id="con-m">
+                    <div class="h-b">
+                        <h2>Capabilities<sup>*</sup></h2>
+                        <p style="letter-spacing:3px; font-size:0.7rem; margin-top:1rem;">AI DIAGNOSTICS TELEMEDICINE
+                            GLOBAL HEALTH</p>
+                    </div>
+                    <div class="g-b">
+                        <div class="colb"><b>(A)</b><span>AI
+                                ANALYSIS</span><span>ACCURACY</span><span>ACCESSIBILITY</span><span>AUTOMATION</span>
+                        </div>
+                        <div class="colb"><b>(C)</b><span>COMPUTER
+                                VISION</span><span>COST-EFFECTIVE</span><span>CLOUD-BASED</span><span>CARE</span></div>
+                        <div class="colb"><b>(E)</b><span>EARLY
+                                DETECTION</span><span>EFFICIENCY</span><span>ENVIRONMENT</span><span>EQUITY</span></div>
+                        <div class="colb"><b>(G)</b><span>GLOBAL
+                                REACH</span><span>GROWTH</span><span>GUIDANCE</span><span>GOALS (SDGS)</span></div>
+                        <div class="colb">
+                            <b>(R)</b><span>REAL-TIME</span><span>REMOTE</span><span>RELIABILITY</span><span>REPORTS</span>
+                        </div>
+                        <div class="colb"><b>(S)</b><span>SCALABLE</span><span>SUSTAINABLE</span><span>SURVIVAL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. IMPACT AREAS (Wide Scroll) -->
+            <div class="c-wide" style="width: 250vw;" id="sec-services">
+                <div class="bg-stk" id="bg-s">
+                    <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?q=80&w=2564&auto=format&fit=crop"
+                        alt="Nature Tech">
+                    <div class="ov-dark"></div>
+                </div>
+                <div class="con-stk" id="con-s">
+                    <div class="l-s">
+                        <div class="ls-l">
+                            <div style="display:flex; flex-direction:column;">
+                                <div class="st active" id="th-1">Innovation<sup>(01)</sup></div>
+                                <div class="st" id="th-2">Wellness<sup>(02)</sup></div>
+                                <div class="st" id="th-3">Economic<sup>(03)</sup></div>
+                            </div>
+                        </div>
+                        <div class="ls-r">
+                            <div style="margin-bottom:15vh;">
+                                <div class="sr">
+                                    <div class="dot">CV</div>COMPUTER VISION
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">DL</div>DEEP LEARNING
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">RT</div>REAL-TIME PROCESSING
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">NI</div>NON-INVASIVE
+                                </div>
+                            </div>
+                            <div style="margin-bottom:15vh;">
+                                <div class="sr">
+                                    <div class="dot">PH</div>PLANETARY HEALTH
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">RE</div>REDUCED EMISSIONS
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">SD</div>SOCIAL DETERMINANTS
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">EQ</div>HEALTH EQUITY
+                                </div>
+                            </div>
+                            <div>
+                                <div class="sr">
+                                    <div class="dot">CS</div>COST SAVINGS
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">JC</div>JOB CREATION
+                                </div>
+                                <div class="sr">
+                                    <div class="dot">MK</div>MARKET GROWTH ($45B+)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. FOOTER -->
+            <div class="c-foot">
+                <div class="fb">OroEYE</div>
+                <div class="ft">
+                    OroEYE isn't just an app—it's a movement towards a future where advanced healthcare is a universal
+                    right, not a privilege, while being mindful of our planet's wellbeing.
+                </div>
+                <div style="font-size:0.8rem; font-weight:700; margin-bottom:2rem; line-height:1.6;">
+                    PREVENTIVE CARE<br>SUSTAINABLE HEALTHCARE
+                </div>
+                <div class="fbtn">JOIN THE MOVEMENT</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- PHYSICS ENGINE ---
+
+        const track = document.getElementById('track');
+        let current = 0;
+        let target = 0;
+        let maxScroll = 0;
+        const ease = 0.08;
+
+        // Elements
+        const txtRails = document.querySelectorAll('.txt-rail');
+        const secM = document.getElementById('sec-marques');
+        const bgM = document.getElementById('bg-m');
+        const conM = document.getElementById('con-m');
+        const secS = document.getElementById('sec-services');
+        const bgS = document.getElementById('bg-s');
+        const conS = document.getElementById('con-s');
+        const th1 = document.getElementById('th-1');
+        const th2 = document.getElementById('th-2');
+        const th3 = document.getElementById('th-3');
+
+        let secM_start, secS_start;
+
+        function resize() {
+            maxScroll = track.scrollWidth - window.innerWidth;
+            secM_start = secM.offsetLeft;
+            secS_start = secS.offsetLeft;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('wheel', (e) => {
+            target += e.deltaY;
+            target = Math.max(0, Math.min(target, maxScroll));
+        });
+
+        function animate() {
+            current += (target - current) * ease;
+
+            // 1. Horizontal Scroll
+            track.style.transform = `translateX(${-current}px)`;
+
+            // 2. Vertical Parallax
+            txtRails.forEach(rail => {
+                const y = current * 0.7;
+                rail.style.transform = `translateY(-${y}px)`;
+            });
+
+            // 3. Marques Sticky (FIXED LOGIC)
+            if (current > secM_start - window.innerWidth && current < secM_start + secM.offsetWidth) {
+                bgM.classList.add('is-visible');
+                const dist = current - secM_start;
+                bgM.style.transform = `translateX(${dist}px)`;
+                conM.style.transform = `translateX(${dist}px) translateY(${-dist * 0.7}px)`;
+            } else {
+                bgM.classList.remove('is-visible');
+            }
+
+            // 4. Services Sticky (FIXED LOGIC)
+            if (current > secS_start - window.innerWidth && current < secS_start + secS.offsetWidth) {
+                bgS.classList.add('is-visible');
+                const dist = current - secS_start;
+                bgS.style.transform = `translateX(${dist}px)`;
+                const vert = dist * 0.7;
+                conS.style.transform = `translateX(${dist}px) translateY(${-vert}px)`;
+
+                // Highlights
+                th1.className = 'st'; th2.className = 'st'; th3.className = 'st';
+                if (vert < window.innerHeight * 0.4) th1.className = 'st active';
+                else if (vert < window.innerHeight * 0.8) th2.className = 'st active';
+                else th3.className = 'st active';
+            } else {
+                bgS.classList.remove('is-visible');
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+    </script>
+</body>
+
+</html>

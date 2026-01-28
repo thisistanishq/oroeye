@@ -1,0 +1,392 @@
+/* Responsive Design - OroEYE */
+
+/* =========================================
+   1. Variables & Base
+   ========================================= */
+:root {
+    --header-height: 80px;
+}
+
+@media (max-width: 768px) {
+    :root {
+        --header-height: 60px;
+    }
+}
+
+/* =========================================
+   2. Typography & Layout
+   ========================================= */
+html {
+    font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+    html {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 0 1.5rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .display-text {
+        font-size: 3rem;
+    }
+}
+
+/* =========================================
+   3. Navigation (Hamburger Menu for Floating Nav)
+   ========================================= */
+
+/* Hide hamburger on desktop */
+.hamburger-menu {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 5001;
+    position: relative;
+}
+
+.hamburger-menu .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-main);
+    margin: 5px 0;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+
+    /* Show hamburger on mobile */
+    .hamburger-menu {
+        display: block;
+    }
+
+    /* Hamburger Animation */
+    .hamburger-menu.active .bar:nth-child(1) {
+        transform: rotate(-45deg) translate(-5px, 6px);
+    }
+
+    .hamburger-menu.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger-menu.active .bar:nth-child(3) {
+        transform: rotate(45deg) translate(-5px, -6px);
+    }
+
+    .nav-link {
+        font-size: 1.5rem;
+        margin: 1rem 0;
+    }
+}
+
+/* =========================================
+   4. Hero Section
+   ========================================= */
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column;
+        padding-top: 100px;
+        text-align: center;
+    }
+
+    .hero-content {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .hero-visual {
+        width: 100%;
+        height: 40vh;
+        margin-top: 2rem;
+    }
+}
+
+/* =========================================
+   5. Analysis Page
+   ========================================= */
+@media (max-width: 768px) {
+    .analysis-container {
+        margin-top: 6rem;
+        padding: 0 1rem;
+    }
+
+    .clean-card {
+        padding: 1.5rem;
+    }
+
+    /* Stack buttons vertically */
+    .clean-card .action-primary-btn {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .drop-zone {
+        padding: 2rem 1rem;
+    }
+
+    .camera-container {
+        height: 300px;
+    }
+
+    .comparison-view {
+        flex-direction: column;
+    }
+
+    .img-card {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+/* =========================================
+   6. Admin Dashboard
+   ========================================= */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tables-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-container {
+        padding: 6rem 1rem 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .admin-header div:last-child {
+        width: 100%;
+    }
+
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Responsive Table */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 600px;
+        /* Force scroll on small screens */
+    }
+}
+
+/* =========================================
+   7. Auth Pages (Login/Register)
+   ========================================= */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 2rem 1.5rem;
+        width: 90%;
+    }
+
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* =========================================
+   8. Horizontal Scroll Section (Mobile Fallback)
+   ========================================= */
+@media (max-width: 768px) {
+    .horizontal-scroll-section {
+        height: auto;
+        overflow-y: auto;
+        display: block;
+    }
+
+    .horizontal-scroll-container {
+        flex-direction: column;
+        padding: 2rem 1rem;
+        transform: none !important;
+        /* Disable GSAP transform if needed */
+    }
+
+    .scroll-card {
+        width: 100%;
+        min-width: auto;
+        height: auto;
+        margin-right: 0;
+        margin-bottom: 2rem;
+    }
+}
+
+/* =========================================
+   9. Utilities
+   ========================================= */
+.hidden-mobile {
+    display: none !important;
+}
+
+@media (min-width: 769px) {
+    .hidden-desktop {
+        display: none !important;
+    }
+}
+/* =========================================
+   10. Preloader Responsiveness
+   ========================================= */
+
+/* For tablets and larger phones */
+@media (max-width: 768px) {
+    /* Reduce the font size of the cycling words */
+    #word-container {
+        font-size: 32px; /* Down from 42px */
+    }
+
+    /* Make the leading dot a bit smaller */
+    #dot {
+        width: 10px;
+        height: 10px;
+        margin-right: 15px; /* Slightly less margin */
+    }
+    
+    /* Reduce the font size of the HUD text inside the SVG */
+    #davinci-svg text {
+        /* This CSS rule overrides the font-size attribute in the SVG tag */
+        font-size: 18px !important; 
+    }
+}
+
+/* For smaller mobile phones */
+@media (max-width: 480px) {
+    #word-container {
+        font-size: 24px; /* Even smaller */
+        letter-spacing: -1px;
+    }
+
+    #dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    #davinci-svg text {
+        font-size: 14px !important;
+    }
+}
+/* =========================================
+   11. Retro Camera Footer Responsiveness
+   ========================================= */
+
+@media (max-width: 900px) {
+    #retro-camera-footer .main-layout {
+        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+    }
+    #retro-camera-footer .left-section {
+        flex: none; width: 100%; height: auto;
+        align-items: center; padding-right: 0; margin-bottom: 10px;
+    }
+    #retro-camera-footer .right-section {
+        flex: none; width: 100%; height: auto;
+        justify-content: center; padding-left: 0;
+    }
+    #retro-camera-footer .camera-scene {
+        transform: scale(0.7);
+    }
+    #retro-camera-footer .logo-stack {
+        font-size: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    #retro-camera-footer .camera-scene {
+        transform: scale(0.55);
+    }
+    #retro-camera-footer .logo-stack {
+        font-size: 70px;
+    }
+}
+/* =========================================
+   12. RESPONSIVE VISIBILITY & SCROLL FIX
+   ========================================= */
+
+/* Default state: show the desktop version, hide the phone version */
+.tablet-and-desktop-only {
+    display: block;
+}
+.phone-only {
+    display: none;
+}
+
+/* On screens 768px wide or less, reverse the visibility */
+@media (max-width: 768px) {
+    .tablet-and-desktop-only {
+        display: none !important;
+    }
+    .phone-only {
+        display: block !important;
+    }
+
+    /* Add mobile-specific styles for the impact scroll */
+    .horizontal-impact {
+        height: 400vh;
+    }
+    .impact-panel {
+        width: 100vw;
+        padding: 0 5%;
+        justify-content: center;
+    }
+    .intro-panel {
+        align-items: center;
+        text-align: center;
+        padding-left: 0;
+    }
+    .impact-lead {
+        margin-left: 0;
+        border-left: none;
+        padding-left: 0;
+        border-top: 2px solid var(--text-main, #000);
+        padding-top: 1rem;
+    }
+    .impact-num {
+        font-size: 50vw;
+        opacity: 0.5;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .impact-content {
+        margin-left: 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .impact-content p {
+        background: #762E3F;
+        padding: 1rem;
+    }
+}

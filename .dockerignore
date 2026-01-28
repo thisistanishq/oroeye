@@ -1,0 +1,11 @@
+venv/
+.git/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+Tests/
+orolight.ipynb
+backend/static/uploads/*
+backend/gradcam_results/*
+frontend/static/uploads/*

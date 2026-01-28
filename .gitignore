@@ -1,0 +1,43 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment files
+.env
+.env.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Node
+node_modules/
+
+# Testing/Build
+.pytest_cache/
+coverage/
+dist/
+build/
+*.egg-info/
+
+# Uploads (generated at runtime)
+frontend/static/uploads/
+frontend/static/gradcam/
+
+# Large model files (exceed GitHub 100MB limit)
+backend/model/*.h5
+backend/model/*.keras
+*.dylib
+
+# TensorFlow and other large binaries
+*.so
+*.dll

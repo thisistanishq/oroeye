@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="#000000">
+    <title>{% block title %}OrOeye{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="{{ url_for('static', filename='styles.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='responsive.css') }}" as="style">
+
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Cursor Effects -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navigation -->
+    <nav class="floating-nav nav-visible">
+        <a href="{{ url_for('home') }}" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OrOeye
+        </a>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <!-- Navigation Links -->
+        <div class="nav-links" id="nav-links">
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="fa-solid fa-gauge-high"></i>
+                Dashboard</a>
+            <a href="{{ url_for('admin_users_page') }}" class="nav-link"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{{ url_for('admin_analytics_page') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i>
+                Analytics</a>
+            <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% elif current_user.is_authenticated %}
+            <a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="{{ url_for('analyze') }}" class="nav-link"><i class="fa-solid fa-microscope"></i> Analysis</a>
+            <a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> Profile</a>
+            <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a href="{{ url_for('register') }}" class="btn"
+                style="padding: 0.5rem 1.5rem; background: var(--accent); color: white; border-radius: 50px;"><i
+                    class="fa-solid fa-user-plus"></i> Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer: Bio-Tech HUD -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
+    <footer class="footer-hud">
+        <div class="footer-hud-bg"></div>
+        <div class="footer-container">
+            <!-- Col 1: Brand & Status -->
+            <div class="hud-col">
+                <div class="footer-logo">OrOeye</div>
+                <div class="system-status">
+                    <span class="pulse-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                    Advanced AI-powered oral cancer screening.
+                    Democratizing early detection with computer vision technology.
+                </p>
+            </div>
+
+            <!-- Col 2: Navigation -->
+            <div class="hud-col">
+                <h4>NAVIGATION</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
+                    </li>
+                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3: Legal -->
+            <div class="hud-col">
+                <h4>LEGAL</h4>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4: Trust -->
+            <div class="hud-col">
+                <h4>SECURITY</h4>
+                <div class="trust-badge">
+                    <div class="trust-header">
+                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
+                        <span>Encrypted Connection</span>
+                    </div>
+                    <div class="trust-text">
+                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
+                        Architecture).
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
+            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
+                    style="color: var(--success);">STABLE</span></div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- Mobile Menu Toggle Script -->
+    <!-- Mobile Menu Toggle Script -->
+    <!-- Logic moved to script.js -->
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

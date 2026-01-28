@@ -1,0 +1,36 @@
+# Flask and extensions
+flask
+flask-cors
+flask-sqlalchemy
+flask-jwt-extended
+flask-login
+flask-wtf
+email-validator
+
+# Database
+flask-pymongo
+flask-bcrypt
+flask-login
+# psycopg2-binary (Removed)
+# SQLAlchemy (Removed)
+
+# Web server
+gunicorn
+werkzeug
+
+# Data processing
+numpy
+scikit-learn
+
+# AI SDKs
+openai
+google-generativeai
+python-dotenv
+
+# For production deployment
+python-dotenv==1.0.0
+
+# ML dependencies (commented - uncomment when adding model)
+tensorflow
+opencv-python
+matplotlib

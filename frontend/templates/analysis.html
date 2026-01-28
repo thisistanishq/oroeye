@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis | OrOeye</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=timestamp) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css', v=timestamp) }}">
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="floating-nav nav-visible">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OrOeye
+        </a>
+
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="{{ url_for('analyze') }}" class="nav-link active"><i class="fa-solid fa-microscope"></i>
+                Analysis</a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> Profile</a>
+            <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a href="{{ url_for('register') }}" class="btn"
+                style="padding: 0.5rem 1.5rem; background: var(--accent); color: white; border-radius: 50px;"><i
+                    class="fa-solid fa-user-plus"></i> Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="analysis-container">
+        <div class="tool-header">
+            <h1>AI Analysis Tool</h1>
+            <p>Upload an oral cavity image for instant screening</p>
+        </div>
+
+        <div class="clean-card">
+            <!-- Error Banner -->
+            <div id="error-banner" class="hidden" style="
+                background: rgba(220, 38, 38, 0.9); 
+                color: white; 
+                padding: 1rem; 
+                border-radius: 12px; 
+                margin-bottom: 2rem; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                gap: 0.5rem;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            ">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="error-text">Analysis Failed</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button id="btn-upload-image" class="action-primary-btn"
+                    style="flex: 1; min-width: 200px; padding: 1.5rem 2rem; font-size: 1.1rem;">
+                    <i class="fa-solid fa-upload" style="margin-right: 0.5rem;"></i>
+                    Upload Image
+                </button>
+                <button id="btn-use-camera" class="action-primary-btn"
+                    style="flex: 1; min-width: 200px; padding: 1.5rem 2rem; font-size: 1.1rem;">
+                    <i class="fa-solid fa-camera" style="margin-right: 0.5rem;"></i>
+                    Use Camera
+                </button>
+            </div>
+
+            <!-- Upload Section -->
+            <div id="upload-section">
+                <form id="uploadForm">
+                    <div class="drop-zone" id="drop-zone"
+                        style="border: 2px dashed #e0e0e0; border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                        <i class="fa-solid fa-cloud-arrow-up"
+                            style="font-size: 3rem; color: #999; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Drag & Drop or Click to Upload</h3>
+                        <p style="color: #888;">Supports JPG, PNG (Max 5MB)</p>
+                        <input type="file" name="file" id="file-input" hidden accept="image/*">
+                    </div>
+
+                    <div id="file-preview-container" class="hidden" style="text-align: center; margin-top: 1.5rem;">
+                        <img id="file-preview" src="" alt="Preview"
+                            style="max-height: 400px; max-width: 100%; margin-bottom: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; padding: 0.5rem;">
+                        <br>
+                        <button type="button" id="btn-remove-file" class="btn-outline"
+                            style="padding: 0.75rem 1.5rem; font-size: 0.9rem; margin-right: 1rem;">
+                            <i class="fa-solid fa-trash" style="margin-right: 0.5rem;"></i>Remove Image
+                        </button>
+                        <button type="button" id="btn-change-file" class="btn-outline"
+                            style="padding: 0.75rem 1.5rem; font-size: 0.9rem;">
+                            <i class="fa-solid fa-file-circle-plus" style="margin-right: 0.5rem;"></i>Change File
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button type="submit" class="submit-btn" id="btn-analyze-upload" disabled
+                            style="padding: 1rem 3rem; font-size: 1.1rem;">
+                            <i class="fa-solid fa-microscope" style="margin-right: 0.5rem;"></i>Analyze Image
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Camera Section -->
+            <div id="camera-section" class="hidden">
+                <div class="camera-container"
+                    style="position: relative; background: #000; height: 450px; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 1.5rem;">
+                    <video id="camera-feed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"
+                        class="hidden"></video>
+                    <canvas id="capture-canvas" class="hidden"
+                        style="width: 100%; height: 100%; object-fit: cover;"></canvas>
+                    <div id="camera-placeholder" style="color: #fff; text-align: center; padding: 2rem;">
+                        <i class="fa-solid fa-camera" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Camera feed will appear here</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button id="btn-start-camera" class="submit-btn" style="padding: 1rem 2rem;">
+                        <i class="fa-solid fa-video" style="margin-right: 0.5rem;"></i>Start Camera
+                    </button>
+                    <button id="btn-capture-photo" class="submit-btn hidden"
+                        style="padding: 1rem 2rem; background: #28a745;">
+                        <i class="fa-solid fa-camera" style="margin-right: 0.5rem;"></i>Capture Photo
+                    </button>
+                    <button id="btn-retake-photo" class="submit-btn hidden"
+                        style="padding: 1rem 2rem; background: #6c757d;">
+                        <i class="fa-solid fa-rotate-left" style="margin-right: 0.5rem;"></i>Retake
+                    </button>
+                    <button id="btn-analyze-capture" class="submit-btn hidden" style="padding: 1rem 2rem;">
+                        <i class="fa-solid fa-microscope" style="margin-right: 0.5rem;"></i>Analyze Capture
+                    </button>
+                    <button id="btn-stop-camera" class="btn-outline hidden" style="padding: 1rem 2rem;">
+                        <i class="fa-solid fa-stop" style="margin-right: 0.5rem;"></i>Stop Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="clean-card hidden ai-processing-card">
+            <div class="ai-processing-title">AI Analysis In Progress</div>
+            <p class="ai-processing-subtitle" id="loading-status-text">Preparing secure upload...</p>
+
+            <div class="ai-progress-loader" aria-hidden="true">
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+            </div>
+
+            <p class="ai-processing-note">Analyzing image...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="clean-card hidden">
+            <div class="result-header">
+                <h3>Analysis Results</h3>
+                <span id="confidence-badge" class="confidence-badge">98% CONFIDENCE</span>
+            </div>
+
+            <h2 id="prediction-status" class="prediction-status">CANCER DETECTED</h2>
+
+            <div class="comparison-view">
+                <div class="img-card">
+                    <p style="text-align: center; margin-bottom: 0.5rem; font-weight: 600;">Original Image</p>
+                    <img id="result-orig-img" src="" alt="Original">
+                </div>
+                <div class="img-card">
+                    <p style="text-align: center; margin-bottom: 0.5rem; font-weight: 600;">AI Heatmap (GradCAM)</p>
+                    <img id="result-gradcam-img" src="" alt="Heatmap">
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="download-report-btn" class="action-btn btn" style="padding: 1rem 2rem; font-size: 1rem;">
+                    <i class="fa-solid fa-file-pdf" style="margin-right: 0.5rem;"></i>
+                    Download Report {% if not current_user.is_authenticated %}(Login Required){% endif %}
+                </button>
+                <button id="find-hospitals-btn" class="action-btn btn-outline hidden"
+                    style="padding: 1rem 2rem; font-size: 1rem;">
+                    <i class="fa-solid fa-hospital" style="margin-right: 0.5rem;"></i> Consult Nearby Hospital/Clinic
+                </button>
+                <button id="reset-analysis-btn" class="action-btn btn-outline"
+                    style="padding: 1rem 2rem; font-size: 1rem;">
+                    <i class="fa-solid fa-rotate-right" style="margin-right: 0.5rem;"></i> New Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="history-section" class="hidden" style="margin-top: 4rem;">
+            <h3 class="section-title" style="font-size: 2rem; text-align: left;">Recent Analysis</h3>
+            <div id="history-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+                <!-- History items injected here -->
+            </div>
+            <button id="clear-history-btn" class="btn-outline" style="margin-top: 2rem;">Clear History</button>
+        </div>
+    </div>
+
+
+    <script>
+        window.__IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}?v={{ range(1, 100000) | random }}"></script>
+</body>
+
+</html>

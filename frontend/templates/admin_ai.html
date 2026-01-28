@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights | OrOeye Admin</title>
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        /* --- FORCE ADMIN STYLES (Overrides broken external CSS) --- */
+
+        /* 1. Ensure Background Contrast & Scrolling */
+        body {
+            background-color: #f4f6f8 !important;
+            color: #1a1a1a !important;
+            font-family: 'Outfit', sans-serif;
+            overflow-y: auto !important;
+        }
+
+        .admin-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 8rem 2rem 2rem;
+            opacity: 1 !important;
+            /* Force visible */
+            visibility: visible !important;
+        }
+
+        /* 2. FIX HEADER HEIGHT (Critical Fix) */
+        header.admin-header,
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+
+            /* Overrides header { min-height: 200vh } from styles.css */
+            min-height: auto !important;
+            height: auto !important;
+            width: 100% !important;
+            position: relative !important;
+        }
+
+        .ai-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            height: 70vh;
+        }
+
+        @media (max-width: 1000px) {
+            .ai-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .ai-sidebar {
+            background: #ffffff !important;
+            /* Force white */
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .ai-main {
+            background: #ffffff !important;
+            /* Force white */
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 2rem;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .preset-btn {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover {
+            background: #fff;
+            border-color: #000;
+            color: #000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-btn i {
+            margin-right: 0.5rem;
+            color: #000;
+        }
+
+        .ai-response {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .ai-response h3 {
+            color: #000;
+            margin-top: 1.5rem;
+            font-weight: 700;
+        }
+
+        .ai-response ul {
+            padding-left: 1.5rem;
+        }
+
+        .ai-response li {
+            margin-bottom: 0.5rem;
+        }
+
+        .custom-query {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        .query-input {
+            width: 100%;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            resize: none;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #000;
+            background: #fff;
+        }
+
+        .query-btn {
+            width: 100%;
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .query-btn:hover {
+            background: #333;
+        }
+
+        .typing-indicator {
+            display: none;
+            color: #000;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="floating-nav nav-visible">
+        <a href="/admin" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OrOeye Admin
+        </a>
+
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/admin" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="/admin/users" class="nav-link"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="/admin/analytics" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+            <a href="/admin/logs" class="nav-link"><i class="fa-solid fa-list-ul"></i> Logs</a>
+            <a href="/admin/messages" class="nav-link"><i class="fa-solid fa-envelope"></i> Messages</a>
+            <a href="/admin/ai" class="nav-link active"><i class="fa-solid fa-robot"></i> AI Insights</a>
+            <a href="/logout" class="nav-link" style="color: #ff4444;"><i class="fa-solid fa-right-from-bracket"></i>
+                Logout</a>
+        </div>
+    </nav>
+
+    <div class="admin-container reveal-up">
+        <header class="admin-header">
+            <div>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">AI Insights</h1>
+                <p style="color: #666;">Powered by Gemini AI • Ask questions about your data</p>
+            </div>
+        </header>
+
+        <div class="ai-container">
+            <div class="ai-sidebar">
+                <h3 style="margin-bottom: 1rem; color: #000;">Quick Analysis</h3>
+                <button class="preset-btn" onclick="askAI('Summarize the recent cancer detection trends')">
+                    <i class="fa-solid fa-chart-line"></i> Detection Trends
+                </button>
+                <button class="preset-btn" onclick="askAI('Identify any unusual user activity patterns')">
+                    <i class="fa-solid fa-user-secret"></i> User Anomalies
+                </button>
+                <button class="preset-btn" onclick="askAI('Give recommendations to improve system performance')">
+                    <i class="fa-solid fa-lightbulb"></i> Recommendations
+                </button>
+                <button class="preset-btn" onclick="askAI('Generate a brief weekly report summary')">
+                    <i class="fa-solid fa-file-alt"></i> Weekly Report
+                </button>
+
+                <div class="custom-query">
+                    <textarea class="query-input" id="custom-query" rows="3"
+                        placeholder="Ask a custom question..."></textarea>
+                    <button class="query-btn" onclick="askCustom()">Ask AI</button>
+                </div>
+            </div>
+
+            <div class="ai-main">
+                <div class="typing-indicator" id="typing">
+                    <i class="fa-solid fa-robot fa-bounce"></i> AI is analyzing data...
+                </div>
+                <div id="ai-content" class="ai-response">
+                    <div style="text-align: center; color: #999; margin-top: 20%;">
+                        <i class="fa-solid fa-robot" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                        <p>Select a quick analysis option or ask a custom question to get insights from your data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        gsap.from('.reveal-up', {
+            y: 30,
+            opacity: 0,
+            duration: 1,
+            ease: 'power4.out'
+        });
+
+        // Convert markdown-style bolding to HTML
+        function formatResponse(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        async function askAI(query) {
+            const contentDiv = document.getElementById('ai-content');
+            const typing = document.getElementById('typing');
+
+            contentDiv.style.opacity = '0.5';
+            typing.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/admin/ai-insights', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch insights from the server.');
+                }
+
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                contentDiv.innerHTML = formatResponse(data.insights);
+            } catch (error) {
+                contentDiv.innerHTML = `<div style="color: #dc3545;">Error: ${error.message}</div>`;
+            } finally {
+                contentDiv.style.opacity = '1';
+                typing.style.display = 'none';
+            }
+        }
+
+        function askCustom() {
+            const query = document.getElementById('custom-query').value.trim();
+            if (query) askAI(query);
+        }
+    </script>
+</body>
+
+</html>

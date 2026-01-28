@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OroEYE | Live Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        .monitor-page {
+            background: #000;
+            overflow: hidden;
+        }
+
+        .monitor-container {
+            padding: 6rem 5%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .monitor-title h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            font-size: 2rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--danger);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .blink-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 2rem;
+            flex: 1;
+        }
+
+        .map-panel {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.3;
+            filter: grayscale(100%);
+        }
+
+        .scan-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--accent-primary);
+            animation: ping 1.5s infinite;
+        }
+
+        .stats-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .stat-card h3 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            color: #fff;
+        }
+
+        .log-panel {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            flex: 1;
+            padding: 1rem;
+            overflow-y: hidden;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-header {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .log-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .log-item {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes ping {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="monitor-page">
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="navbar">
+        <div class="logo"><i class="fa-solid fa-eye"></i> OroEYE</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/analyze" class="nav-link">Analysis Tool</a>
+            <a href="/research" class="nav-link">Research</a>
+            <a href="/monitor" class="nav-link active">Live Monitor</a>
+            <a href="/faq" class="nav-link">FAQ</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            {% if current_user.is_authenticated %}
+            <a href="/profile" class="nav-link">Profile</a>
+            {% else %}
+            <a href="/login" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="monitor-container">
+        <header class="monitor-header">
+            <div class="monitor-title">
+                <h1>Global Analysis Stream</h1>
+            </div>
+            <div class="live-indicator">
+                <div class="blink-dot"></div> Live Network
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="map-panel" id="map-panel">
+                <!-- Simple SVG World Map Placeholder -->
+                <svg class="world-map" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50,250 Q200,100 400,250 T800,250" stroke="#333" stroke-width="2" fill="none" />
+                    <!-- Abstract representation -->
+                    <text x="500" y="250" fill="#333" font-family="Arial" font-size="50" text-anchor="middle">GLOBAL
+                        NETWORK ACTIVE</text>
+                </svg>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <h3>Active Users</h3>
+                    <div class="stat-value" id="active-users">--</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Scans Today</h3>
+                    <div class="stat-value" id="scans-today">--</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Threats Detected</h3>
+                    <div class="stat-value" style="color: var(--danger);" id="threats-detected">--</div>
+                </div>
+
+                <div class="log-panel">
+                    <div class="log-header">System Logs</div>
+                    <ul class="log-list" id="log-list">
+                        <li class="log-item">> System Initialized...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Simulation Logic
+        const mapPanel = document.getElementById('map-panel');
+        const logList = document.getElementById('log-list');
+        const scansCount = document.getElementById('scans-today'); // Updated ID
+        const threatsCount = document.getElementById('threats-detected'); // Updated ID
+        const activeUsersCount = document.getElementById('active-users'); // New ID
+
+        let scans = 1248;
+        let threats = 142;
+        let activeUsers = 7; // Initial value for active users
+
+        function addLog(msg) {
+            const li = document.createElement('li');
+            li.className = 'log-item';
+            li.innerText = `> ${new Date().toLocaleTimeString()} : ${msg}`;
+            logList.prepend(li);
+            if (logList.children.length > 8) logList.lastElementChild.remove();
+        }
+
+        function spawnPing() {
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const ping = document.createElement('div');
+            ping.className = 'scan-point';
+            ping.style.left = x + '%';
+            ping.style.top = y + '%';
+            mapPanel.appendChild(ping);
+
+            setTimeout(() => ping.remove(), 1500);
+
+            scans++;
+            scansCount.innerText = scans.toLocaleString();
+
+            const isThreat = Math.random() > 0.8;
+            if (isThreat) {
+                threats++;
+                threatsCount.innerText = threats.toLocaleString();
+                ping.style.background = '#ff4444';
+                ping.style.boxShadow = '0 0 10px #ff4444';
+                addLog(`ALERT: High confidence detection [ID-${Math.floor(Math.random() * 9999)}]`);
+            } else {
+                addLog(`Scan complete: Healthy [ID-${Math.floor(Math.random() * 9999)}]`);
+            }
+        }
+
+        setInterval(spawnPing, 2000);
+    </script>
+</body>
+
+</html>

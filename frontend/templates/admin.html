@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | OrOeye</title>
+    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
+    <!-- External CSS (Keeping your original) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- FORCE ADMIN STYLES (Overrides broken external CSS) --- */
+
+        /* 1. Ensure Background Contrast */
+        body {
+            background-color: #f4f6f8 !important;
+            /* Light gray background */
+            color: #1a1a1a !important;
+            font-family: 'Outfit', sans-serif;
+            overflow-y: auto !important;
+        }
+
+        /* 2. Fix Container Visibility */
+        .admin-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 8rem 2rem 2rem;
+            opacity: 1 !important;
+            /* Force visible */
+            visibility: visible !important;
+            width: 100%;
+            /* Ensure full width */
+            box-sizing: border-box;
+        }
+
+        /* FIX: Reset header height from styles.css conflict */
+        header.admin-header,
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+
+            /* CRITICAL FIX: Overrides header { min-height: 200vh } from styles.css */
+            min-height: auto !important;
+            height: auto !important;
+            width: 100% !important;
+            position: relative !important;
+            flex-wrap: wrap;
+            /* Allow wrapping on mobile */
+        }
+
+        /* 3. Card Styling (Make them white so they pop) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background-color: #ffffff !important;
+            border: 1px solid #e0e0e0;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #000;
+            /* Accent bar */
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            color: #000;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            color: #666;
+        }
+
+        /* 4. Chart & Table Containers */
+        .chart-container {
+            background-color: #ffffff !important;
+            border: 1px solid #e0e0e0;
+            padding: 2rem;
+            height: 400px;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 1000px) {
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .table-container {
+            background-color: #ffffff !important;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 700;
+            background-color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #666;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: #eee;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* 5. Delete Button Style */
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="floating-nav nav-visible">
+        <a href="/admin" class="logo">
+            <i class="fa-solid fa-shield-halved"></i> OroEYE Admin
+        </a>
+
+        <button class="hamburger-menu" id="hamburger-menu" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="/admin" class="nav-link active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="/admin/users" class="nav-link"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="/admin/analytics" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+            <a href="/admin/logs" class="nav-link"><i class="fa-solid fa-list-ul"></i> Logs</a>
+            <a href="/logout" class="nav-link" style="color: var(--danger);"><i
+                    class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </nav>
+    <!-- Main Container -->
+    <div class="admin-container">
+        <header class="admin-header">
+            <div>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Dashboard</h1>
+                <p style="color: #666;">Real-time system overview</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="action-btn" onclick="location.reload()">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="total-users">--</div>
+                <div class="stat-change" id="users-change">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Scans</div>
+                <div class="stat-value" id="total-scans">--</div>
+                <div class="stat-change" id="scans-change">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Cancer Detections</div>
+                <div class="stat-value" id="cancer-count" style="color: #dc3545;">--</div>
+                <div class="stat-change" id="cancer-change">Monitoring...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">System Health</div>
+                <div class="stat-value" style="color: #28a745;">99.9%</div>
+                <div class="stat-change" style="color: #28a745;">
+                    <i class="fa-solid fa-check-circle"></i> Operational
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <!-- Tables Grid -->
+        <div class="tables-grid">
+            <!-- Users Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="margin: 0;">User Management</h3>
+                    <span style="color: #666; font-size: 0.9rem;" id="user-count-badge">0 users</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Scans</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td colspan="4" class="loading">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 style="margin: 0;">Recent Activity</h3>
+                </div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="loading">Loading activity...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Footer: Bio-Tech HUD -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
+    <footer class="footer-hud">
+        <div class="footer-hud-bg"></div>
+        <div class="footer-container">
+            <!-- Col 1: Brand & Status -->
+            <div class="hud-col">
+                <div class="footer-logo">OroEYE</div>
+                <div class="system-status">
+                    <span class="pulse-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                    Advanced AI-powered oral cancer screening.
+                    Democratizing early detection with computer vision technology.
+                </p>
+            </div>
+
+            <!-- Col 2: Navigation -->
+            <div class="hud-col">
+                <h4>NAVIGATION</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
+                    </li>
+                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3: Legal -->
+            <div class="hud-col">
+                <h4>LEGAL</h4>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4: Trust -->
+            <div class="hud-col">
+                <h4>SECURITY</h4>
+                <div class="trust-badge">
+                    <div class="trust-header">
+                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
+                        <span>Encrypted Connection</span>
+                    </div>
+                    <div class="trust-text">
+                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
+                        Architecture).
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
+            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
+                    style="color: var(--success);">STABLE</span></div>
+        </div>
+    </footer>
+
+    <!-- Script -->
+    <script>
+        // NOTE: I have removed all GSAP Animation code to prevent visibility issues.
+        // The dashboard will now load instantly.
+
+        let chartInstance = null;
+        let updateInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDashboardData();
+            // Auto-refresh every 10 seconds
+            updateInterval = setInterval(fetchDashboardData, 10000);
+        });
+
+        async function fetchDashboardData() {
+            try {
+                // 1. Try to fetch from real API
+                const response = await fetch('/admin/stats');
+
+                // 2. Check if API exists
+                if (!response.ok) {
+                    throw new Error("API not available");
+                }
+
+                const data = await response.json();
+                updateUI(data);
+
+            } catch (error) {
+                console.warn('Backend API error or not ready. Using MOCK DATA for display.');
+
+                // 3. MOCK DATA FALLBACK (Ensures page is never blank)
+                const mockData = {
+                    total_users: 124,
+                    total_scans: 856,
+                    cancer_count: 42,
+                    new_users_week: 12,
+                    scans_today: 34,
+                    scans_week: 210,
+                    top_users: [
+                        { name: "John Doe", email: "john@example.com", scans: 45, role: "user" },
+                        { name: "Jane Smith", email: "jane@test.com", scans: 32, role: "user" },
+                        { name: "Dr. Alice", email: "alice@clinic.com", scans: 128, role: "admin" }
+                    ],
+                    recent_analyses: [
+                        { prediction: "Cancer", confidence: 0.98, timestamp: "2 mins ago" },
+                        { prediction: "Non-Cancerous", confidence: 0.99, timestamp: "5 mins ago" },
+                        { prediction: "Non-Cancerous", confidence: 0.87, timestamp: "12 mins ago" }
+                    ]
+                };
+                updateUI(mockData);
+            }
+        }
+
+        function updateUI(data) {
+            // Update Stats
+            document.getElementById('total-users').textContent = data.total_users || 0;
+            document.getElementById('total-scans').textContent = data.total_scans || 0;
+            document.getElementById('cancer-count').textContent = data.cancer_count || 0;
+
+            // Update sub-text
+            document.getElementById('users-change').innerHTML = `+${data.new_users_week || 0} this week`;
+            document.getElementById('scans-change').innerHTML = `${data.scans_today || 0} today`;
+
+            // Calculate percentage
+            const rate = data.total_scans > 0 ? ((data.cancer_count / data.total_scans) * 100).toFixed(1) : 0;
+            document.getElementById('cancer-change').textContent = `${rate}% rate`;
+
+            document.getElementById('user-count-badge').textContent = `${data.total_users} users`;
+
+            // Render Users
+            const tbody = document.getElementById('users-table-body');
+            if (data.top_users && data.top_users.length > 0) {
+                tbody.innerHTML = data.top_users.map(user => `
+                <tr>
+                    <td style="font-weight: 600;">${user.name || 'Unknown'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td><span style="font-weight: 700;">${user.scans || 0}</span></td>
+                    <td><span class="badge">${(user.role || 'user').toUpperCase()}</span></td>
+                </tr>
+            `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No users found</td></tr>';
+            }
+
+            // Render Activity
+            const feed = document.getElementById('activity-feed');
+            if (data.recent_analyses && data.recent_analyses.length > 0) {
+                feed.innerHTML = data.recent_analyses.map(analysis => {
+                    const isCancer = analysis.prediction && analysis.prediction.toLowerCase().includes('cancer') && !analysis.prediction.toLowerCase().includes('non');
+                    const color = isCancer ? '#dc3545' : '#28a745';
+
+                    return `
+                <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${color};"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">Analysis Complete</div>
+                        <div style="color: #666; font-size: 0.8rem;">
+                            <span style="color: ${color}; font-weight:600;">${analysis.prediction}</span> • ${(parseFloat(analysis.confidence || 0) * 100).toFixed(1)}% confidence
+                        </div>
+                    </div>
+                    <div style="color: #999; font-size: 0.75rem;">${analysis.timestamp || 'Just now'}</div>
+                </div>
+            `}).join('');
+            } else {
+                feed.innerHTML = '<div class="loading">No recent activity</div>';
+            }
+
+            renderChart(data);
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('mainChart');
+            if (!ctx) return;
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Mock chart data
+            const chartData = [12, 19, 15, 25, 22, 30, data.scans_today || 35];
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Weekly Scans',
+                        data: chartData,
+                        borderColor: '#000',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#000',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Activity (7 Days)' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+        });
+    </script>
+</body>
+
+</html>

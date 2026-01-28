@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact | OroEYE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="contact-page">
+
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-eye"></i> OroEYE
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/analyze" class="nav-link">Analysis Tool</a>
+            <a href="/research" class="nav-link">Research</a>
+            <a href="/contact" class="nav-link active">Contact</a>
+        </div>
+    </nav>
+
+    <div class="contact-bg-anim"></div>
+
+    <div class="contact-container">
+        <div class="contact-content">
+            <div class="contact-text">
+                <h1>Get in Touch</h1>
+                <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 1rem;">
+                    Have questions about OroEYE? We're here to help.
+                </p>
+
+                <div class="contact-info">
+                    <div class="info-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>contact@oroeye.ai</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>+1 (555) 123-4567</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Research Lab, University Campus</span>
+                    </div>
+                </div>
+            </div>
+
+            <form class="contact-form" method="POST" action="/contact">
+                <h2 style="margin-bottom: 1.5rem;">Send us a message</h2>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div
+                    style="padding: 1rem; margin-bottom: 1rem; background: {% if category == 'success' %}rgba(0,204,102,0.1){% else %}rgba(255,68,68,0.1){% endif %}; border: 1px solid {% if category == 'success' %}var(--success){% else %}var(--danger){% endif %}; border-radius: 5px; color: {% if category == 'success' %}var(--success){% else %}var(--danger){% endif %};">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <div class="form-group">
+                    <input type="text" name="name" placeholder=" " required>
+                    <label>Full Name</label>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" name="email" placeholder=" " required>
+                    <label>Email Address</label>
+                </div>
+
+                <div class="form-group">
+                    <textarea name="message" placeholder=" " required></textarea>
+                    <label>Message</label>
+                </div>
+
+                <button type="submit" class="cta-button primary">
+                    Send Message <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Footer: Bio-Tech HUD -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
+    <footer class="footer-hud">
+        <div class="footer-hud-bg"></div>
+        <div class="footer-container">
+            <!-- Col 1: Brand & Status -->
+            <div class="hud-col">
+                <div class="footer-logo">OroEYE</div>
+                <div class="system-status">
+                    <span class="pulse-dot"></span>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                    Advanced AI-powered oral cancer screening.
+                    Democratizing early detection with computer vision technology.
+                </p>
+            </div>
+
+            <!-- Col 2: Navigation -->
+            <div class="hud-col">
+                <h4>NAVIGATION</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
+                    </li>
+                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
+                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3: Legal -->
+            <div class="hud-col">
+                <h4>LEGAL</h4>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4: Trust -->
+            <div class="hud-col">
+                <h4>SECURITY</h4>
+                <div class="trust-badge">
+                    <div class="trust-header">
+                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
+                        <span>Encrypted Connection</span>
+                    </div>
+                    <div class="trust-text">
+                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
+                        Architecture).
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-github"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem; opacity: 0.7;"><i
+                            class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
+            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
+                    style="color: var(--success);">STABLE</span></div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
