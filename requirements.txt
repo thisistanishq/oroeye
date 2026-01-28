@@ -1,0 +1,35 @@
+# Flask and extensions
+flask
+flask-cors
+flask-sqlalchemy
+flask-jwt-extended
+flask-login
+flask-wtf
+email-validator
+
+# Database
+flask-pymongo
+flask-bcrypt
+
+# Web server
+gunicorn
+werkzeug
+
+# Data processing
+numpy
+scikit-learn
+
+# AI SDKs
+openai
+google-generativeai
+python-dotenv
+
+# PDF Generation
+reportlab
+Pillow
+
+# ML dependencies
+tensorflow
+opencv-python-headless
+matplotlib
+
