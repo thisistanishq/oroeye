@@ -84,6 +84,15 @@ Open your browser and hit:
 
 ---
 
+## 🔐 Admin Access
+
+Want to see the dashboard? Use these credentials to log in:
+
+*   **Email:** `admin@oroeye`
+*   **Password:** `projectoraleye`
+
+Access it at: `/login` after starting the server.
+
 ## 🤝 Credits
 
 **Built with Sweat, Tears, and Caffeine.**
