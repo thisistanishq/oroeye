@@ -1,4 +1,9 @@
 import os
+
+# Disable TensorFlow GPU and reduce startup time (must be before TF import)
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU only
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # Suppress TF warnings
+
 import numpy as np
 import cv2
 import matplotlib
