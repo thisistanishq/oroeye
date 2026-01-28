@@ -1,210 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Research | OrOeye</title>
-    <link rel="icon" href="{{ url_for('static', filename='oroeye.png') }}" type="image/png">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+{% block content %}
+<section class="section">
+    <div class="container">
 
-<body class="research-page">
-
-
-    <!-- Custom Cursor -->
-    <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
-
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="logo">
-            <i class="fa-solid fa-eye"></i> OrOeye
-        </div>
-        <div class="nav-links">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/analyze" class="nav-link">Analysis Tool</a>
-            <a href="/research" class="nav-link active">Research</a>
-            <a href="/contact" class="nav-link">Contact</a>
-        </div>
-    </nav>
-
-    <div class="research-container">
-        <div class="research-header">
-            <div class="badge">AI RESEARCH</div>
-            <h1>Model & Research</h1>
-            <p>Deep learning architecture for oral cancer detection</p>
+        <!-- Header -->
+        <div style="text-align: center; margin: 4rem 0 6rem;">
+            <div class="badge"
+                style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent-primary); color: var(--accent-primary); display: inline-block; padding: 0.5rem 1.5rem; border-radius: 50px; margin-bottom: 2rem; font-family: monospace;">
+                SYSTEM ARCHITECTURE V2.1</div>
+            <h1 class="gradient-text display-text" style="font-size: 4rem;">NEURAL<br>CORE</h1>
         </div>
 
-        <!-- Metrics -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-icon"><i class="fa-solid fa-brain"></i></div>
-                <div class="big-number">98.2%</div>
-                <p>Validation Accuracy</p>
+        <!-- Metrics Grid -->
+        <div class="glass-grid">
+            <div class="glass-card" style="text-align: center;">
+                <i class="fa-solid fa-brain"
+                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">98.2%</div>
+                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">VALIDATION
+                    ACCURACY</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-icon"><i class="fa-solid fa-database"></i></div>
-                <div class="big-number">10K+</div>
-                <p>Training Images</p>
+
+            <div class="glass-card" style="text-align: center;">
+                <i class="fa-solid fa-database"
+                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">10K+</div>
+                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">TRAINING SAMPLES
+                </div>
             </div>
-            <div class="metric-card">
-                <div class="metric-icon"><i class="fa-solid fa-layer-group"></i></div>
-                <div class="big-number">572</div>
-                <p>Neural Layers</p>
+
+            <div class="glass-card" style="text-align: center;">
+                <i class="fa-solid fa-layer-group"
+                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">572</div>
+                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">NEURAL LAYERS
+                </div>
             </div>
         </div>
 
-        <!-- Model Architecture -->
-        <div class="charts-row">
-            <div class="chart-section">
-                <h2>Model Architecture</h2>
-                <p style="color: var(--text-muted); margin-bottom: 2rem;">
-                    Our system uses InceptionResNetV2, a state-of-the-art deep learning model pre-trained on ImageNet
-                    and fine-tuned for oral cancer detection.
-                </p>
-                <div class="arch-flow">
-                    <div class="flow-step">
-                        <div class="step-box">Input Image (299x299)</div>
-                        <div class="step-arrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <!-- Main Content Split -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 6rem;">
+
+            <!-- Model Flow Visualization -->
+            <div class="glass-card" style="padding: 3rem;">
+                <h3 style="margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 1rem;">
+                    INFERENCE PIPELINE</h3>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for step in ['Input Tensor (299x299)', 'InceptionResNetV2 Backbone', 'Global Average Pooling',
+                    'Dense Layer (1024)', 'Dropout (0.5)', 'Sigmoid Activation'] %}
+                    <div
+                        style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 1.2rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-family: monospace;">{{ loop.index0 }}: {{ step }}</span>
+                        <i class="fa-solid fa-arrow-down" style="color: rgba(255,255,255,0.2); font-size: 0.8rem;"></i>
                     </div>
-                    <div class="flow-step">
-                        <div class="step-box">InceptionResNetV2</div>
-                        <div class="step-arrow"><i class="fa-solid fa-arrow-down"></i></div>
-                    </div>
-                    <div class="flow-step">
-                        <div class="step-box highlight">Global Pooling</div>
-                        <div class="step-arrow"><i class="fa-solid fa-arrow-down"></i></div>
-                    </div>
-                    <div class="flow-step">
-                        <div class="step-box">Dense(1, Sigmoid)</div>
-                        <div class="step-arrow"><i class="fa-solid fa-arrow-down"></i></div>
-                    </div>
-                    <div class="flow-step">
-                        <div class="step-box result">Cancer / Non-Cancer</div>
+                    {% endfor %}
+                    <div
+                        style="background: var(--accent-primary); color: #000; padding: 1.2rem; border-radius: 8px; text-align: center; font-weight: 800; margin-top: 1rem;">
+                        OUTPUT: PREDICTION
                     </div>
                 </div>
             </div>
 
-            <div class="chart-section">
-                <h2>Key Features</h2>
-                <ul style="list-style: none; padding: 0; margin-top: 2rem;">
-                    <li style="padding: 1rem 0; border-bottom: 1px solid var(--glass-border);">
-                        <strong>Transfer Learning:</strong> Pre-trained on ImageNet
-                    </li>
-                    <li style="padding: 1rem 0; border-bottom: 1px solid var(--glass-border);">
-                        <strong>Grad-CAM Visualization:</strong> Explainable AI
-                    </li>
-                    <li style="padding: 1rem 0; border-bottom: 1px solid var(--glass-border);">
-                        <strong>Data Augmentation:</strong> Rotation, Flip, Zoom
-                    </li>
-                    <li style="padding: 1rem 0;">
-                        <strong>Validation:</strong> Stratified K-Fold
-                    </li>
-                </ul>
+            <!-- Features List -->
+            <div>
+                <h3 style="margin-bottom: 2rem; color: #fff;">CORE CAPABILITIES</h3>
+                <div class="glass-panel" style="padding: 3rem;">
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
+                            <i class="fa-solid fa-microchip"
+                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Transfer Learning</h4>
+                                <p style="font-size: 0.95rem; margin-bottom: 0;">Built upon ImageNet pre-trained
+                                    weights, fine-tuned specifically for histopathological oral tissue analysis.</p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
+                            <i class="fa-solid fa-eye"
+                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Grad-CAM XAI</h4>
+                                <p style="font-size: 0.95rem; margin-bottom: 0;">Explainable AI module that generates
+                                    heatmaps, allowing clinicians to verify which regions influenced the model's
+                                    decision.</p>
+                            </div>
+                        </li>
+                        <li style="display: flex; gap: 1.5rem;">
+                            <i class="fa-solid fa-shield-virus"
+                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                            <div>
+                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Robust Validation</h4>
+                                <p style="font-size: 0.95rem; margin-bottom: 0;"> Rigorous testing using Stratified
+                                    K-Fold cross-validation to ensure generalization across diverse patient
+                                    demographics.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
+
         </div>
 
-        <!-- Dataset Info -->
-        <div class="chart-section" style="margin-top: 3rem;">
-            <h2>Dataset Information</h2>
-            <p style="color: var(--text-muted); margin: 1rem 0;">
-                The model is trained on a comprehensive dataset of histopathology images containing both cancerous
-                (Oral Squamous Cell Carcinoma) and non-cancerous tissue samples.
-            </p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
-                <div>
-                    <h3 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Training Set</h3>
-                    <p style="color: var(--text-muted);">8,000 images (80% of total)</p>
-                </div>
-                <div>
-                    <h3 style="color: var(--accent-primary); margin-bottom: 0.5rem;">Validation Set</h3>
-                    <p style="color: var(--text-muted);">2,000 images (20% of total)</p>
-                </div>
-            </div>
-        </div>
     </div>
+</section>
 
-
-    <!-- Footer: Bio-Tech HUD -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='footer_hud.css') }}">
-    <footer class="footer-hud">
-        <div class="footer-hud-bg"></div>
-        <div class="footer-container">
-            <!-- Col 1: Brand & Status -->
-            <div class="hud-col">
-                <div class="footer-logo">OrOeye</div>
-                <div class="system-status">
-                    <span class="pulse-dot"></span>
-                    <span>SYSTEM ONLINE</span>
-                </div>
-                <p style="color: #888; font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
-                    Advanced AI-powered oral cancer screening.
-                    Democratizing early detection with computer vision technology.
-                </p>
-            </div>
-
-            <!-- Col 2: Navigation -->
-            <div class="hud-col">
-                <h4>NAVIGATION</h4>
-                <ul class="footer-links">
-                    <li><a href="{{ url_for('home') }}"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
-                    <li><a href="{{ url_for('analyze') }}"><i class="fa-solid fa-chevron-right"></i> Analysis Tool</a>
-                    </li>
-                    <li><a href="{{ url_for('research') }}"><i class="fa-solid fa-chevron-right"></i> Research</a></li>
-                    <li><a href="{{ url_for('contact') }}"><i class="fa-solid fa-chevron-right"></i> Contact</a></li>
-                </ul>
-            </div>
-
-            <!-- Col 3: Legal -->
-            <div class="hud-col">
-                <h4>LEGAL</h4>
-                <ul class="footer-links">
-                    <li><a href="#"><i class="fa-solid fa-file-shield"></i> Privacy Policy</a></li>
-                    <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Terms of Service</a></li>
-                    <li><a href="#"><i class="fa-solid fa-circle-info"></i> Disclaimer</a></li>
-                </ul>
-            </div>
-
-            <!-- Col 4: Trust -->
-            <div class="hud-col">
-                <h4>SECURITY</h4>
-                <div class="trust-badge">
-                    <div class="trust-header">
-                        <i class="fa-solid fa-lock" style="color: var(--accent-primary);"></i>
-                        <span>Encrypted Connection</span>
-                    </div>
-                    <div class="trust-text">
-                        All data is processed securely. We adhere to medical data privacy standards (HIPAA Compliant
-                        Architecture).
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <a href="https://github.com/thisistanishq/proeye" target="_blank"
-                        style="color: #fff; font-size: 1.2rem; opacity: 0.7; transition: opacity 0.3s;"><i
-                            class="fa-brands fa-github"></i></a>
-                    <a href="https://www.linkedin.com/in/thisistanishq" target="_blank"
-                        style="color: #fff; font-size: 1.2rem; opacity: 0.7; transition: opacity 0.3s;"><i
-                            class="fa-brands fa-linkedin"></i></a>
-                    <a href="https://www.instagram.com/thisistanishq" target="_blank"
-                        style="color: #fff; font-size: 1.2rem; opacity: 0.7; transition: opacity 0.3s;"><i
-                            class="fa-brands fa-instagram"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <div>&copy; 2025 OroEYE AI. All rights reserved.</div>
-            <div style="font-family: monospace; opacity: 0.5;">v2.0.4-beta • <span
-                    style="color: var(--success);">STABLE</span></div>
-        </div>
-    </footer>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-
-</html>
+<style>
+    body {
+        background-color: #050505;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+    }
+</style>
+{% endblock %}
