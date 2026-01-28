@@ -10,9 +10,6 @@ email-validator
 # Database
 flask-pymongo
 flask-bcrypt
-flask-login
-# psycopg2-binary (Removed)
-# SQLAlchemy (Removed)
 
 # Web server
 gunicorn
@@ -27,10 +24,12 @@ openai
 google-generativeai
 python-dotenv
 
-# For production deployment
-python-dotenv==1.0.0
+# PDF Generation
+reportlab
+Pillow
 
-# ML dependencies (commented - uncomment when adding model)
+# ML dependencies
 tensorflow
-opencv-python
+opencv-python-headless
 matplotlib
+
