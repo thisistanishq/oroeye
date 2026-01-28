@@ -1,0 +1,44 @@
+name: oroeye
+
+services:
+  - name: web
+    type: web
+    git:
+      repository: github.com/thisistanishq/oroeye
+      branch: main
+      buildpack:
+        build_command: pip install -r requirements.txt
+        run_command: gunicorn --bind 0.0.0.0:8000 --timeout 120 --workers 1 wsgi:app
+    ports:
+      - port: 8000
+        protocol: http
+    instance_types:
+      - type: free
+    scaling:
+      min: 1
+      max: 1
+    health_checks:
+      - port: 8000
+        protocol: http
+        path: /
+        interval_seconds: 30
+        timeout_seconds: 10
+        healthy_threshold: 2
+        unhealthy_threshold: 3
+    env:
+      - key: MONGO_URI
+        value: ""
+        secret: true
+      - key: SECRET_KEY
+        value: ""
+        secret: true
+      - key: OPENAI_API_KEY
+        value: ""
+        secret: true
+      - key: GEMINI_API_KEY
+        value: ""
+        secret: true
+      - key: CUDA_VISIBLE_DEVICES
+        value: "-1"
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"
