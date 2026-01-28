@@ -100,14 +100,27 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-UPLOAD_FOLDER = "../frontend/static/uploads"
-GRADCAM_FOLDER = "../frontend/static/gradcam"
+# Use absolute paths for upload directories (works for both local and cloud deployment)
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "../frontend/static/uploads")
+GRADCAM_FOLDER = os.path.join(BASE_DIR, "../frontend/static/gradcam")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["GRADCAM_FOLDER"] = GRADCAM_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(GRADCAM_FOLDER, exist_ok=True)
 
-MODEL_PATH = "model/best_model.keras"
+# Create directories with proper error handling for cloud environments
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(GRADCAM_FOLDER, exist_ok=True)
+except PermissionError:
+    # Use /tmp for cloud environments where filesystem is read-only
+    UPLOAD_FOLDER = "/tmp/uploads"
+    GRADCAM_FOLDER = "/tmp/gradcam"
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+    app.config["GRADCAM_FOLDER"] = GRADCAM_FOLDER
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(GRADCAM_FOLDER, exist_ok=True)
+    print(f"Using temp directories: {UPLOAD_FOLDER}, {GRADCAM_FOLDER}")
+
+MODEL_PATH = os.path.join(BASE_DIR, "model/best_model.keras")
 model = None
 if TF_AVAILABLE:
     try:
