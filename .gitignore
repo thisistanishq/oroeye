@@ -33,11 +33,7 @@ build/
 frontend/static/uploads/
 frontend/static/gradcam/
 
-# Large model files (exceed GitHub 100MB limit)
-backend/model/*.h5
-backend/model/*.keras
+# TensorFlow and other large binaries (installed via pip on deploy)
 *.dylib
-
-# TensorFlow and other large binaries
 *.so
 *.dll
