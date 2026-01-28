@@ -1,102 +1,92 @@
-# 🏥 OroEYE: The Future of Oral Analysis
+# 🏥 OrOeye: Deep Learning Oral Lesion Analysis
 
-**STOP. SCROLLING.**
-You just found the coolest, most robust, and straight-up **banger** of a medical AI tool you'll see today.
+**This isn't just another classification script.**
 
-This isn't just some "school project." This is **OroEYE**.
-We built this beast to tackle oral cancer detection head-on, blending state-of-the-art **Deep Learning** with a UI that actually looks like it belongs in 2026. No boring medical interfaces here. We believe saving lives should look **good**.
+OrOeye is a production-grade, full-stack medical AI platform designed to detect potential oral anomalies with explainable precision. We moved beyond simple "black box" predictions to build a system that medical professionals can actually verify.
 
----
-
-## 🚀 Why This Exists (The "Real Talk")
-
-Oral cancer is scary. Identifying it shouldn't be confusing.
-Most medical tools look like they were built for Windows 95. We said **"NO."**
-
-We wanted something that feels premium, works instantly, and gives you answers without the headache.
-We used **InceptionResNetV2** (yeah, the heavy hitter) to act as the brain, and we wrapped it in a customized, dark-mode-first, glassmorphism-dripping interface that makes analysis feel like magic.
+It combines **Computer Vision (CNNs)** for detection, **Heuristic Forensics** for data validation, and **Generative AI** for system analytics into a single, cohesive architecture.
 
 ---
 
-## 🔥 Features That Slap
+## ⚡ The "Heavy Lifting" (Technical Deep Dive)
 
-*   **Cyberpunk-Grade Analysis:** Upload an image, and our AI tears through it to find anomalies.
-*   **Smart Validation (No Junk Allowed):** Try uploading a selfie? A picture of your cat? The system **KNOWS**. It checks for flesh tones, rejects random nonsense, and ensures only valid medical images get analyzed.
-*   **Heatmap Vision (Grad-CAM):** We don't just tell you "Cancer Detected." We show you **EXACTLY WHERE** the AI is looking. It's like X-Ray vision for your browser.
-*   **Floating Navbar & HUD Footer:** The UI floats. It glows. It responds. It's pure eye candy.
-*   **Instant Feedback:** No waiting around. Boom. Results. Done.
+We didn't just `pip install tensorflow` and call it a day. Here is what's actually happening under the hood:
+
+### 1. Explainable AI (XAI) with Grad-CAM
+Most AI models just say "Cancer: 90%". That's useless for a doctor.
+*   **What we built:** We implemented **Gradient-weighted Class Activation Mapping (Grad-CAM)**.
+*   **How it works:** We hook into the final convolutional layer of our **InceptionResNetV2** model to extract the gradients. We then overlay a heatmap on the original image, showing you *exactly* which pixels triggered the prediction.
+*   **The Result:** You don't just get a diagnosis; you get visual proof of the lesion the AI detected.
+
+### 2. Heuristic Image Forensics (The "Gatekeeper")
+Garbage In, Garbage Out. We built a custom validation engine using **OpenCV** that runs *before* the AI even touches the image. It uses physics-based heuristics to reject invalid data:
+*   **Spectral Analysis:** Rejects images with dominant blue/sky tones (outdoors/non-medical).
+*   **Flesh-Tone Ratios:** Calculates the saturation of specific HSV ranges to ensure the image contains mucosal tissue.
+*   **Face-Rejection Logic:** Uses Haar Cascades to detect if a user uploaded a "selfie" instead of a zoomed-in oral cavity shot. If it sees a face, it blocks the upload.
+
+### 3. Hybrid AI Architecture
+We aren't relying on one model.
+*   **The Eye:** A fine-tuned **InceptionResNetV2** (CNN) handles the visual diagnostics.
+*   **The Brain:** We integrated **LLMs (GPT-4)** into the Admin Dashboard (`/admin`). It analyzes system logs, user patterns, and scan statistics to provide natural language insights to administrators.
 
 ---
 
-## 🛠️ The Tech Stack (Built Different)
+## 🛠️ System Architecture
 
-We didn't just throw this together. We forged it.
-
-*   **Backend:** Python & Flask (Robust. Reliable. Fast.)
-*   **The Brain:** TensorFlow & Keras (The muscle behind the magic)
-*   **Vision:** OpenCV (For that smart image validation)
-*   **Frontend:** Vanilla JS & CSS (No bloated frameworks. Just pure, optimized speed.)
+*   **Backend:** Python (Flask) serving as the REST API and inference engine.
+*   **Database:** MongoDB Atlas (NoSQL) for flexible user data and scan history storage.
+*   **Auth:** Secure session management with `bcrypt` encryption.
+*   **Reporting:** Automated PDF generation engine (`ReportLab`) that compiles the original image, the AI heatmap, and clinical notes into a downloadable medical report.
 
 ---
 
-## ⚡ How to Run This Beast
+## 🚀 How to Run It
 
-Want to see it in action? Let's get it running on your machine.
-(Don't worry, it's easy.)
-
-### 1. Steal (Clone) The Code
+### 1. Clone & Prep
 ```bash
-git clone https://github.com/YourRepo/OroEYE.git
-cd OroEYE
+git clone https://github.com/thisistanishq/proeye.git
+cd proeye
 ```
 
-### 2. Prepare the Environment
-Don't mess up your global python. Be smart. Use a virtual env.
+### 2. Virtual Env (Recommended)
 ```bash
 python -m venv venv
-source venv/bin/activate  # Mac/Linux users (The cool kids)
-# venv\Scripts\activate   # Windows users (We still love you)
+source venv/bin/activate  # Mac/Linux
+# venv\Scripts\activate   # Windows
 ```
 
-### 3. Feed the Beast (Dependencies)
-Install the magic sauce.
+### 3. Install Dependencies
 ```bash
-cd backend
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 
-### 4. Ignite the Engine
-Start only the backend. The frontend is served right from there because we optimized it like crazy.
+### 4. Run the Server
 ```bash
-python app.py
+# We handle the frontend serving directly from Flask for speed
+python wsgi.py
+# OR
+cd backend && python app.py
 ```
 
-### 5. Witness Greatness
-Open your browser and hit:
-👉 `http://127.0.0.1:5001`
+Visit `http://127.0.0.1:5001`.
 
 ---
 
-## ⚠️ Notes for the Curious
+## 🔐 Admin Dashboard
 
-*   **"Why does it say Non-Cancerous?"** -> If you don't have the massive AI model file (`best_model.h5`), the system runs in **Simulation Mode**. It defaults to "Non-Cancerous" so you don't panic during a demo. Smart, right?
-*   **Image Validation:** If your image gets rejected, it's because our validation logic is doing its job. It wants clear, oral cavity photos. No blurry messes.
+The system includes a fully equipped **Admin Dashboard** for clinic managers.
+*   **Features:** User management, system log analysis, and AI-driven insights.
+*   **Access:** Routes are protected by `@admin_required` decorators. You'll need Admin credentials to access `/admin`.
 
 ---
 
-## 🔐 Admin Access
+## ⚠️ Simulation Mode
 
-Want to see the dashboard? Use these credentials to log in:
+**Note:** The trained model files (`.h5` / `.keras`) are massive (~200MB+).
+If you clone this repo without pulling the LFS files, the system detects the missing model and automatically switches to **Simulation Mode**.
+*   It will functional normally but return simulated "Non-Cancerous" results to prevent crashing.
+*   To get real predictions, ensure you have the model files in `backend/model/`.
 
-*   **Email:** `admin@oroeye`
-*   **Password:** `projectoraleye`
+---
 
-Access it at: `/login` after starting the server.
-
-## 🤝 Credits
-
-**Built with Sweat, Tears, and Caffeine.**
-This wasn't generated by some AI. This was coded by humans who care about pixels, performance, and impact.
-
-**OroEYE.** Because better tech means better health.
-Now go run it. 🚀
+**Built by Tanishq.** Code that actually works.
