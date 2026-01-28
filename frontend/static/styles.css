@@ -4407,7 +4407,7 @@ p {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     border-radius: 24px;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden;  <-- Removed to prevent cutting off content */
 }
 
 /* Glass Card - Interactive hoverable elements */
