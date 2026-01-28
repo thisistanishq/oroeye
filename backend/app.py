@@ -476,6 +476,15 @@ def analyze(): return render_template('analysis.html')
 @app.route('/research')
 def research(): return render_template('research.html')
 
+@app.route('/privacy')
+def privacy(): return render_template('privacy.html')
+
+@app.route('/terms')
+def terms(): return render_template('terms.html')
+
+@app.route('/disclaimer')
+def disclaimer(): return render_template('disclaimer.html')
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
