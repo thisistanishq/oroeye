@@ -81,9 +81,7 @@ The system includes a fully equipped **Admin Dashboard** for clinic managers.
 *   **Message Center:** Full management interface for contact form submissions.
 *   **User Management:** Search, filter, and manage user accounts and access roles.
 
-**Default Credentials:**
-*   **Email:** `admin@oroeye`
-*   **Password:** `projectoraleye`
+
 
 ---
 
