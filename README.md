@@ -44,8 +44,8 @@ We aren't relying on one model.
 
 ### 1. Clone & Prep
 ```bash
-git clone https://github.com/thisistanishq/proeye.git
-cd proeye
+git clone https://github.com/thisistanishq/oroeye.git
+cd oroeye
 ```
 
 ### 2. Virtual Env (Recommended)
@@ -75,8 +75,15 @@ Visit `http://127.0.0.1:5001`.
 ## 🔐 Admin Dashboard
 
 The system includes a fully equipped **Admin Dashboard** for clinic managers.
-*   **Features:** User management, system log analysis, and AI-driven insights.
-*   **Access:** Routes are protected by `@admin_required` decorators. You'll need Admin credentials to access `/admin`.
+
+*   **Real-Time Analytics:** Live tracking of daily/weekly scans, cancer detection rates, and user growth.
+*   **System Logs:** Real-time event logging engine that aggregates user actions, scans, and system warnings.
+*   **Message Center:** Full management interface for contact form submissions.
+*   **User Management:** Search, filter, and manage user accounts and access roles.
+
+**Default Credentials:**
+*   **Email:** `admin@oroeye`
+*   **Password:** `projectoraleye`
 
 ---
 
@@ -84,7 +91,7 @@ The system includes a fully equipped **Admin Dashboard** for clinic managers.
 
 **Note:** The trained model files (`.h5` / `.keras`) are massive (~200MB+).
 If you clone this repo without pulling the LFS files, the system detects the missing model and automatically switches to **Simulation Mode**.
-*   It will functional normally but return simulated "Non-Cancerous" results to prevent crashing.
+*   It will function normally but return simulated "Non-Cancerous" results to prevent crashing.
 *   To get real predictions, ensure you have the model files in `backend/model/`.
 
 ---
