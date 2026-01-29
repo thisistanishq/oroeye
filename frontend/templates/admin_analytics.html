@@ -192,14 +192,24 @@
         }
 
         function initCharts(data) {
+            // Generate labels for last 7 days
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const today = new Date();
+            const labels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                labels.push(days[d.getDay()]);
+            }
+
             // Scans Trend
             new Chart(document.getElementById('scansTrendChart'), {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: labels,
                     datasets: [{
                         label: 'Daily Scans',
-                        data: [12, 19, 15, 25, 22, 30, data.scans_today || 10], // Mock historical + real today
+                        data: data.weekly_scans || [0, 0, 0, 0, 0, 0, 0],
                         borderColor: '#000',
                         backgroundColor: 'rgba(0, 0, 0, 0.05)',
                         fill: true,
@@ -243,23 +253,24 @@
                 }
             });
 
-            // User Growth (Mock data for demo + real total)
+            // User Growth (Weekly)
             new Chart(document.getElementById('userGrowthChart'), {
                 type: 'bar',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Current'],
+                    labels: ['New Users this Week'],
                     datasets: [{
                         label: 'New Users',
-                        data: [5, 8, 12, data.new_users_week || 3],
+                        data: [data.new_users_week],
                         backgroundColor: '#000',
-                        borderRadius: 4
+                        borderRadius: 4,
+                        barThickness: 50
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        title: { display: true, text: 'User Growth (Monthly)', color: '#000', font: { size: 16, family: "'Space Grotesk', sans-serif" } },
+                        title: { display: true, text: 'User Growth (Last 7 Days)', color: '#000', font: { size: 16, family: "'Space Grotesk', sans-serif" } },
                         legend: { display: false }
                     },
                     scales: {

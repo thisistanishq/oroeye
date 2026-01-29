@@ -37,6 +37,7 @@ body {
     color: var(--text-main);
     font-family: 'SF Pro Text', 'SF Pro Icons', 'AOS Icons', 'Helvetica Neue', Helvetica, Arial, sans-serif, system-ui;
     overflow-x: hidden;
+    overflow-y: auto;
     min-height: 100vh;
     line-height: 1.6;
     timeline-scope: --scroller;
@@ -1735,23 +1736,94 @@ header {
 
 .hero a {
     color: #fff;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, #ff6b9d 50%, var(--accent) 100%);
+    background-size: 200% 200%;
     text-decoration: none;
-    padding: 1rem 2rem;
+    padding: 1rem 2.5rem;
     border-radius: 100px;
     font-weight: bold;
     position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.hero a::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent);
+    transition: left 0.5s ease;
+    z-index: 2;
 }
 
 .hero a::after {
     content: "";
     position: absolute;
-    inset: 0;
-    background: hsl(0 0% 100% / 0);
+    inset: -2px;
+    background: linear-gradient(135deg, var(--accent), #ff6b9d, #ff8fab, var(--accent));
+    background-size: 300% 300%;
+    border-radius: 100px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: borderGlow 3s ease infinite;
+}
+
+@keyframes borderGlow {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes buttonPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3), 0 0 0 0 rgba(255, 107, 157, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 8px 30px rgba(255, 107, 157, 0.5), 0 0 20px 5px rgba(255, 107, 157, 0.2);
+    }
+}
+
+.hero a:is(:hover, :focus-visible) {
+    transform: translateY(-3px) scale(1.05);
+    background-position: 100% 0;
+    box-shadow:
+        0 10px 40px rgba(255, 107, 157, 0.5),
+        0 0 30px rgba(255, 107, 157, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+    animation: buttonPulse 1.5s ease-in-out infinite;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.hero a:is(:hover, :focus-visible)::before {
+    left: 100%;
 }
 
 .hero a:is(:hover, :focus-visible)::after {
-    background: hsl(0 0% 100% / 0.1);
+    opacity: 1;
+}
+
+.hero a:active {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
 }
 
 .panel {
@@ -3495,8 +3567,21 @@ p {
 }
 
 .card .text {
-    background: #602533;
-    /* Darker element color */
+    background: linear-gradient(90deg, #602533 0%, #b34d66 50%, #602533 100%);
+    background-size: 200% 100%;
+    animation: cardShimmer 3s infinite linear;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(179, 77, 102, 0.4);
+}
+
+@keyframes cardShimmer {
+    0% {
+        background-position: 150% 0;
+    }
+
+    100% {
+        background-position: -50% 0;
+    }
 }
 
 .card__avatar {

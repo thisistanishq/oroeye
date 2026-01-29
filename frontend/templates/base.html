@@ -53,11 +53,8 @@
         <!-- Navigation Links -->
         <div class="nav-links" id="nav-links">
             {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="fa-solid fa-gauge-high"></i>
-                Dashboard</a>
-            <a href="{{ url_for('admin_users_page') }}" class="nav-link"><i class="fa-solid fa-users"></i> Users</a>
-            <a href="{{ url_for('admin_analytics_page') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i>
-                Analytics</a>
+            <a href="{{ url_for('home') }}" class="nav-link"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="{{ url_for('analyze') }}" class="nav-link"><i class="fa-solid fa-microscope"></i> Analyze</a>
             <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--danger);"><i
                     class="fa-solid fa-right-from-bracket"></i> Logout</a>
             {% elif current_user.is_authenticated %}
@@ -147,7 +144,7 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem;">
-                    <a href="https://github.com/thisistanishq/proeye" target="_blank"
+                    <a href="https://github.com/thisistanishq/oroeye" target="_blank"
                         style="color: #fff; font-size: 1.2rem; opacity: 0.7; transition: opacity 0.3s;"><i
                             class="fa-brands fa-github"></i></a>
                     <a href="https://www.linkedin.com/in/thisistanishq" target="_blank"

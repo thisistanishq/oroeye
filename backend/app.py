@@ -5,7 +5,12 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU only
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # Suppress TF warnings
 
 import numpy as np
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+    print("WARNING: OpenCV not available. Image processing will be limited.")
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -25,9 +30,14 @@ from flask import Flask, render_template, request, jsonify, send_file, redirect,
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import io
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.utils import ImageReader
+except ImportError:
+    print("WARNING: ReportLab not available. PDF generation disabled.")
+    canvas = None
+
 from datetime import datetime, timedelta
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
@@ -37,7 +47,15 @@ from dotenv import load_dotenv
 from functools import wraps
 import time
 import traceback
-import openai
+
+# Try to import OpenAI
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    print("WARNING: OpenAI not available. AI features disabled.")
+    openai = None
+    OPENAI_AVAILABLE = False
 
 # Load environment variables
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -62,7 +80,7 @@ login_manager.login_view = 'login'
 
 # Initialize OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
+if OPENAI_API_KEY and OPENAI_AVAILABLE:
     try:
         openai.api_key = OPENAI_API_KEY
     except Exception as e:
@@ -570,8 +588,38 @@ def admin_ai_page(): return render_template('admin_ai.html')
 @app.route('/api/admin/users')
 @admin_required
 def get_users():
-    users = [{'id': str(u['_id']), 'name': u.get('name'), 'email': u.get('email'), 'role': u.get('role'), 'is_active': u.get('is_active')} for u in mongo.db.users.find()]
-    return jsonify({'users': users})
+    search = request.args.get('search', '').lower()
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    
+    query = {}
+    if search:
+        query = {'$or': [
+            {'name': {'$regex': search, '$options': 'i'}},
+            {'email': {'$regex': search, '$options': 'i'}}
+        ]}
+    
+    total = mongo.db.users.count_documents(query)
+    users_cursor = mongo.db.users.find(query).skip((page - 1) * per_page).limit(per_page)
+    
+    users = []
+    for u in users_cursor:
+        users.append({
+            'id': str(u['_id']),
+            'name': u.get('name', 'Unknown'),
+            'email': u.get('email', 'No Email'),
+            'role': u.get('role', 'user'),
+            'is_active': u.get('is_active', True),
+            'created_at': u.get('created_at', datetime.now()).strftime('%Y-%m-%d') if isinstance(u.get('created_at'), datetime) else 'N/A',
+            'scans': 0  # Placeholder as we don't track scan count per user in user doc yet
+        })
+        
+    return jsonify({
+        'users': users,
+        'total': total,
+        'per_page': per_page,
+        'page': page
+    })
 
 @app.route('/api/admin/users/<uid>', methods=['PUT', 'DELETE'])
 @admin_required
@@ -583,11 +631,100 @@ def manage_user(uid):
 @app.route('/admin/stats')
 @admin_required
 def admin_stats():
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # 1. Scans Today
+    scans_today = mongo.db.history.count_documents({'timestamp': {'$gte': today_start}})
+
+    # 2. New Users (Last 7 Days)
+    new_users_week = mongo.db.users.count_documents({'created_at': {'$gte': week_ago}})
+
+    # 3. Weekly Scan Activity (Last 7 Days)
+    weekly_scans = []
+    # Loop for last 7 days to get daily counts
+    for i in range(6, -1, -1):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        count = mongo.db.history.count_documents({
+            'timestamp': {'$gte': day_start, '$lt': day_end}
+        })
+        weekly_scans.append(count)
+
     return jsonify({
         'total_users': mongo.db.users.count_documents({}),
         'total_scans': mongo.db.history.count_documents({}),
-        'cancer_count': mongo.db.history.count_documents({'prediction': 'Cancer'})
+        'cancer_count': mongo.db.history.count_documents({'prediction': 'Cancer'}),
+        'scans_today': scans_today,
+        'new_users_week': new_users_week,
+        'weekly_scans': weekly_scans
     })
+
+@app.route('/api/admin/logs')
+@admin_required
+def get_logs():
+    logs = []
+    
+    # 1. User Creation Logs
+    for u in mongo.db.users.find().limit(50):
+        logs.append({
+            'timestamp': u.get('created_at', datetime.now()).isoformat() if isinstance(u.get('created_at'), datetime) else None,
+            'level': 'INFO',
+            'message': f"New user registered: {u.get('email')}",
+            'details': {'role': u.get('role')}
+        })
+
+    # 2. Scan Logs
+    for h in mongo.db.history.find().sort('timestamp', -1).limit(50):
+        logs.append({
+            'timestamp': h['timestamp'].isoformat() if isinstance(h['timestamp'], datetime) else None,
+            'level': 'INFO',
+            'message': f"Scan performed by user",
+            'details': {'prediction': h.get('prediction')}
+        })
+
+    # 3. Message Logs
+    for m in mongo.db.contact_messages.find().limit(20):
+        logs.append({
+            'timestamp': m['timestamp'].isoformat() if isinstance(m['timestamp'], datetime) else None,
+            'level': 'WARNING' if m.get('status') == 'new' else 'INFO',
+            'message': f"New contact message from {m.get('name')}",
+            'details': {'email': m.get('email')}
+        })
+
+    # Filter out None timestamps and sort by latest
+    logs = [l for l in logs if l['timestamp']]
+    logs.sort(key=lambda x: x['timestamp'], reverse=True)
+
+    return jsonify({'system_logs': logs[:100]})
+
+@app.route('/api/admin/messages')
+@admin_required
+def get_messages():
+    messages = []
+    for msg in mongo.db.contact_messages.find().sort('timestamp', -1):
+        messages.append({
+            'id': str(msg['_id']),
+            'name': msg.get('name', 'Unknown'),
+            'email': msg.get('email', ''),
+            'message': msg.get('message', ''),
+            'timestamp': msg.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M'),
+            'status': msg.get('status', 'new')
+        })
+    return jsonify({'messages': messages})
+
+@app.route('/api/admin/messages/<mid>', methods=['PUT', 'DELETE'])
+@admin_required
+def manage_message(mid):
+    if request.method == 'DELETE':
+        mongo.db.contact_messages.delete_one({'_id': ObjectId(mid)})
+    else:
+        mongo.db.contact_messages.update_one(
+            {'_id': ObjectId(mid)}, 
+            {'$set': {'status': request.json.get('status', 'read')}}
+        )
+    return jsonify({'success': True})
 
 @app.route('/api/admin/ai-insights', methods=['POST'])
 @admin_required

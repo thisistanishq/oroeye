@@ -29,7 +29,7 @@ reportlab
 Pillow
 
 # ML dependencies
-tensorflow
+# tensorflow
 opencv-python-headless
 matplotlib
 

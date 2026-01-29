@@ -1,110 +1,108 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
+<!-- Remove .section wrapper to avoid padding conflicts with base.html's main.container -->
+<div style="padding-top: 100px; padding-bottom: 4rem;">
 
-        <!-- Header -->
-        <div style="text-align: center; margin: 12rem 0 6rem;">
-            <div class="badge"
-                style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent-primary); color: var(--accent-primary); display: inline-block; padding: 0.5rem 1.5rem; border-radius: 50px; margin-bottom: 2rem; font-family: monospace;">
-                SYSTEM ARCHITECTURE V2.1</div>
-            <h1 class="gradient-text display-text" style="font-size: 4rem;">NEURAL<br>CORE</h1>
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 4rem;">
+        <div
+            style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent-primary); color: var(--accent-primary); display: inline-block; padding: 0.5rem 1.5rem; border-radius: 50px; margin-bottom: 2rem; font-family: monospace;">
+            SYSTEM ARCHITECTURE V2.1
         </div>
+        <h1 style="font-size: 4rem; font-weight: 800; color: #fff; line-height: 1.1;">NEURAL<br>CORE</h1>
+    </div>
 
-        <!-- Metrics Grid -->
-        <div class="glass-grid">
-            <div class="glass-card" style="text-align: center;">
-                <i class="fa-solid fa-brain"
-                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
-                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">98.2%</div>
-                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">VALIDATION
-                    ACCURACY</div>
-            </div>
-
-            <div class="glass-card" style="text-align: center;">
-                <i class="fa-solid fa-database"
-                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
-                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">10K+</div>
-                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">TRAINING SAMPLES
-                </div>
-            </div>
-
-            <div class="glass-card" style="text-align: center;">
-                <i class="fa-solid fa-layer-group"
-                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
-                <div style="font-size: 4rem; font-weight: 800; line-height: 1;">572</div>
-                <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">NEURAL LAYERS
-                </div>
+    <!-- Metrics Grid -->
+    <div class="glass-grid">
+        <div class="glass-card" style="text-align: center;">
+            <i class="fa-solid fa-brain"
+                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+            <div style="font-size: 4rem; font-weight: 800; line-height: 1;">98.2%</div>
+            <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">VALIDATION ACCURACY
             </div>
         </div>
 
-        <!-- Main Content Split -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 6rem;">
+        <div class="glass-card" style="text-align: center;">
+            <i class="fa-solid fa-database"
+                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+            <div style="font-size: 4rem; font-weight: 800; line-height: 1;">10K+</div>
+            <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">TRAINING SAMPLES
+            </div>
+        </div>
 
-            <!-- Model Flow Visualization -->
-            <div class="glass-card" style="padding: 3rem;">
-                <h3 style="margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 1rem;">
-                    INFERENCE PIPELINE</h3>
+        <div class="glass-card" style="text-align: center;">
+            <i class="fa-solid fa-layer-group"
+                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;"></i>
+            <div style="font-size: 4rem; font-weight: 800; line-height: 1;">572</div>
+            <div style="font-family: monospace; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">NEURAL LAYERS</div>
+        </div>
+    </div>
 
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    {% for step in ['Input Tensor (299x299)', 'InceptionResNetV2 Backbone', 'Global Average Pooling',
-                    'Dense Layer (1024)', 'Dropout (0.5)', 'Sigmoid Activation'] %}
-                    <div
-                        style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 1.2rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-family: monospace;">{{ loop.index0 }}: {{ step }}</span>
-                        <i class="fa-solid fa-arrow-down" style="color: rgba(255,255,255,0.2); font-size: 0.8rem;"></i>
-                    </div>
-                    {% endfor %}
-                    <div
-                        style="background: var(--accent-primary); color: #000; padding: 1.2rem; border-radius: 8px; text-align: center; font-weight: 800; margin-top: 1rem;">
-                        OUTPUT: PREDICTION
-                    </div>
+    <!-- Main Content Split -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 6rem;">
+
+        <!-- Model Flow Visualization -->
+        <div class="glass-card" style="padding: 3rem;">
+            <h3 style="margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 1rem;">
+                INFERENCE PIPELINE</h3>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for step in ['Input Tensor (299x299)', 'InceptionResNetV2 Backbone', 'Global Average Pooling',
+                'Dense Layer (1024)', 'Dropout (0.5)', 'Sigmoid Activation'] %}
+                <div
+                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 1.2rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-family: monospace;">{{ loop.index0 }}: {{ step }}</span>
+                    <i class="fa-solid fa-arrow-down" style="color: rgba(255,255,255,0.2); font-size: 0.8rem;"></i>
+                </div>
+                {% endfor %}
+                <div
+                    style="background: var(--accent-primary); color: #000; padding: 1.2rem; border-radius: 8px; text-align: center; font-weight: 800; margin-top: 1rem;">
+                    OUTPUT: PREDICTION
                 </div>
             </div>
+        </div>
 
-            <!-- Features List -->
-            <div>
-                <h3 style="margin-bottom: 2rem; color: #fff;">CORE CAPABILITIES</h3>
-                <div class="glass-panel" style="padding: 3rem;">
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
-                            <i class="fa-solid fa-microchip"
-                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Transfer Learning</h4>
-                                <p style="font-size: 0.95rem; margin-bottom: 0;">Built upon ImageNet pre-trained
-                                    weights, fine-tuned specifically for histopathological oral tissue analysis.</p>
-                            </div>
-                        </li>
-                        <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
-                            <i class="fa-solid fa-eye"
-                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Grad-CAM XAI</h4>
-                                <p style="font-size: 0.95rem; margin-bottom: 0;">Explainable AI module that generates
-                                    heatmaps, allowing clinicians to verify which regions influenced the model's
-                                    decision.</p>
-                            </div>
-                        </li>
-                        <li style="display: flex; gap: 1.5rem;">
-                            <i class="fa-solid fa-shield-virus"
-                                style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
-                            <div>
-                                <h4 style="color: #fff; margin-bottom: 0.5rem;">Robust Validation</h4>
-                                <p style="font-size: 0.95rem; margin-bottom: 0;"> Rigorous testing using Stratified
-                                    K-Fold cross-validation to ensure generalization across diverse patient
-                                    demographics.</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+        <!-- Features List -->
+        <div>
+            <h3 style="margin-bottom: 2rem; color: #fff;">CORE CAPABILITIES</h3>
+            <div class="glass-panel" style="padding: 3rem;">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
+                        <i class="fa-solid fa-microchip"
+                            style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 0.5rem;">Transfer Learning</h4>
+                            <p style="font-size: 0.95rem; margin-bottom: 0;">Built upon ImageNet pre-trained weights,
+                                fine-tuned specifically for histopathological oral tissue analysis.</p>
+                        </div>
+                    </li>
+                    <li style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
+                        <i class="fa-solid fa-eye"
+                            style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 0.5rem;">Grad-CAM XAI</h4>
+                            <p style="font-size: 0.95rem; margin-bottom: 0;">Explainable AI module that generates
+                                heatmaps, allowing clinicians to verify which regions influenced the model's decision.
+                            </p>
+                        </div>
+                    </li>
+                    <li style="display: flex; gap: 1.5rem;">
+                        <i class="fa-solid fa-shield-virus"
+                            style="color: var(--accent-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 0.5rem;">Robust Validation</h4>
+                            <p style="font-size: 0.95rem; margin-bottom: 0;">Rigorous testing using Stratified K-Fold
+                                cross-validation to ensure generalization across diverse patient demographics.</p>
+                        </div>
+                    </li>
+                </ul>
             </div>
-
         </div>
 
     </div>
-</section>
+
+</div>
 
 <style>
     body {
