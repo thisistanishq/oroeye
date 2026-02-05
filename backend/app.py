@@ -7,8 +7,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # Suppress TF warnings
 import numpy as np
 try:
     import cv2
+    CV_AVAILABLE = True
 except ImportError:
     cv2 = None
+    CV_AVAILABLE = False
     print("WARNING: OpenCV not available. Image processing will be limited.")
 
 import matplotlib
