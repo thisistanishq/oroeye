@@ -862,6 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 completeLoadingAnimation();
                 hideLoading();
                 displayResults(data);
+                stopCameraStream(); // Auto-stop camera after successful analysis
             } catch (err) {
                 console.error(err);
 
@@ -955,7 +956,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (origImg && data.filename) origImg.src = `/static/uploads/${data.filename}`;
 
         const gradcamImg = document.getElementById('result-gradcam-img');
-        if (gradcamImg && data.gradcam) gradcamImg.src = `/static/gradcam/${data.gradcam}`;
+        if (gradcamImg) {
+            if (data.gradcam) {
+                gradcamImg.src = `/static/gradcam/${data.gradcam}`;
+            } else {
+                // Fallback: show original image with simulation indicator
+                gradcamImg.src = `/static/uploads/${data.filename}`;
+                const gradcamLabel = gradcamImg.closest('.result-image-box')?.querySelector('p');
+                if (gradcamLabel) gradcamLabel.innerHTML = 'AI Heatmap <span style="color:#ff9800;font-size:0.7em;">(Simulation Mode)</span>';
+            }
+        }
 
         const hospitalBtn = document.getElementById('find-hospitals-btn');
         if (hospitalBtn) {
