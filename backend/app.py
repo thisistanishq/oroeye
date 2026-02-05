@@ -245,14 +245,22 @@ def validate_oral_image(img_path):
         return False # Fail CLOSED (Reject if we crash)
 
 def make_prediction(img_path):
-    if not TF_AVAILABLE or model is None: 
+        if not TF_AVAILABLE or model is None: 
         # Fallback/Simulation Mode for testing without TF
-        # SAFETY FIX: Do NOT random choice "Cancer". Default to "Non-Cancerous" for demo/testing.
         import random
-        is_cancer = False 
-        confidence = float(random.uniform(0.90, 0.98))
         
-        print("WARNING: Running in simulation mode (TF missing). Defaulting to Non-Cancerous.")
+        # Check if filename implies cancer for testing purposes
+        filename = os.path.basename(img_path).lower()
+        if any(keyword in filename for keyword in ['cancer', 'tumor', 'malignant', 'positive']):
+             is_cancer = True
+             print(f"Simulation Mode: Forced CANCER result due to filename '{filename}'")
+        else:
+             # Random chance for testing UI
+             is_cancer = random.choice([True, False])
+             
+        confidence = float(random.uniform(0.85, 0.98))
+        
+        print(f"WARNING: Running in simulation mode (TF missing). Prediction: {'Cancer' if is_cancer else 'Non-Cancerous'}")
         
         if is_cancer:
             return "Cancer", confidence
