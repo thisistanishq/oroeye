@@ -245,7 +245,7 @@ def validate_oral_image(img_path):
         return False # Fail CLOSED (Reject if we crash)
 
 def make_prediction(img_path):
-        if not TF_AVAILABLE or model is None: 
+    if not TF_AVAILABLE or model is None: 
         # Fallback/Simulation Mode for testing without TF
         import random
         
