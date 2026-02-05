@@ -255,43 +255,9 @@ def make_prediction(img_path):
              is_cancer = True
              print(f"Simulation Mode: Forced CANCER result due to filename '{filename}'")
         else:
-             # Heuristic Simulation: Analyze center for redness/abnormalities
-             # This makes the simulation feel "real" even without the ML model
-             try:
-                 if CV_AVAILABLE:
-                     img_sim = cv2.imread(img_path)
-                     if img_sim is not None:
-                        h, w = img_sim.shape[:2]
-                        # Center crop 40%
-                        cy, cx = h // 2, w // 2
-                        ch, cw = int(h * 0.4), int(w * 0.4)
-                        center_img = img_sim[cy-ch//2:cy+ch//2, cx-cw//2:cx+cw//2]
-                        
-                        # Convert to HSV
-                        hsv = cv2.cvtColor(center_img, cv2.COLOR_BGR2HSV)
-                        
-                        # Define red range (inflammation/blood)
-                        lower_red1 = np.array([0, 70, 50])
-                        upper_red1 = np.array([10, 255, 255])
-                        lower_red2 = np.array([170, 70, 50])
-                        upper_red2 = np.array([180, 255, 255])
-                        
-                        mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-                        mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
-                        red_mask = mask1 | mask2
-                        
-                        red_ratio = cv2.countNonZero(red_mask) / (center_img.shape[0] * center_img.shape[1])
-                        print(f"Simulation Heuristic: Red Ratio = {red_ratio:.2f}")
-                        
-                        # If > 15% of center is deep red/inflamed -> Simulate Cancer
-                        is_cancer = red_ratio > 0.15
-                     else:
-                        is_cancer = random.choice([True, False])
-                 else:
-                    is_cancer = random.choice([True, False])
-             except Exception as e:
-                 print(f"Simulation Heuristic Failed: {e}")
-                 is_cancer = random.choice([True, False])
+             # Default to Non-Cancerous for safety
+             # The heuristic (red ratio) was causing false positives on healthy mouths (which are red).
+             is_cancer = False
              
         confidence = float(random.uniform(0.85, 0.98))
         
