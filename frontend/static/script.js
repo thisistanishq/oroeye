@@ -952,16 +952,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        const timestamp = new Date().getTime();
         const origImg = document.getElementById('result-orig-img');
-        if (origImg && data.filename) origImg.src = `/static/uploads/${data.filename}`;
+        if (origImg && data.filename) origImg.src = `/static/uploads/${data.filename}?t=${timestamp}`;
 
         const gradcamImg = document.getElementById('result-gradcam-img');
         if (gradcamImg) {
             if (data.gradcam) {
-                gradcamImg.src = `/static/gradcam/${data.gradcam}`;
+                gradcamImg.src = `/static/gradcam/${data.gradcam}?t=${timestamp}`;
             } else {
                 // Fallback: show original image with simulation indicator
-                gradcamImg.src = `/static/uploads/${data.filename}`;
+                gradcamImg.src = `/static/uploads/${data.filename}?t=${timestamp}`;
                 const gradcamLabel = gradcamImg.closest('.result-image-box')?.querySelector('p');
                 if (gradcamLabel) gradcamLabel.innerHTML = 'AI Heatmap <span style="color:#ff9800;font-size:0.7em;">(Simulation Mode)</span>';
             }
@@ -1061,14 +1062,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('reset-analysis-btn');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
+            // Reset Global State
+            currentResultData = null;
+            currentImageFile = null;
+            try { sessionStorage.removeItem('pendingResultData'); } catch (e) { }
+            try { setCookie('oro_last_analysis', '', -1); } catch (e) { }
+
             document.getElementById('results-section')?.classList.add('hidden');
             document.getElementById('loading-state')?.classList.add('hidden');
             document.querySelector('.clean-card')?.classList.remove('hidden');
             document.getElementById('upload-section')?.classList.remove('hidden');
             document.getElementById('camera-section')?.classList.add('hidden');
+
             if (fileInput) fileInput.value = '';
             if (previewContainer) previewContainer.classList.add('hidden');
             if (dropZone) dropZone.classList.remove('hidden');
+            if (btnAnalyzeUpload) btnAnalyzeUpload.disabled = true;
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
