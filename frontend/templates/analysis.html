@@ -215,6 +215,154 @@
         </div>
     </div>
 
+    <!-- Limitation Disclaimer Modal -->
+    <div id="limitation-modal" class="modal-overlay">
+        <div class="modal-content glass-effect">
+            <h2><i class="fas fa-exclamation-triangle"></i> Demo Limitation Notice</h2>
+            <p>This web application is running in a simplified <strong>Simulation Mode</strong> due to cloud compute
+                limitations.</p>
+            <p
+                style="background: rgba(255, 99, 71, 0.1); padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(255, 99, 71, 0.3);">
+                It does <strong>NOT</strong> produce 100% accurate medical reports.
+            </p>
+            <p>For the full, accurate AI model, please run the project locally from our GitHub Repository.</p>
+            <a href="https://github.com/thisistanishq/oroeye" target="_blank" class="github-btn">
+                <i class="fab fa-github"></i> Visit GitHub Repo
+            </a>
+            <br>
+            <button id="close-modal-btn" class="action-btn">I Understand</button>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            /* Darker backdrop */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            padding: 3rem;
+            border-radius: 24px;
+            max-width: 550px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-content h2 {
+            color: #ff9f43;
+            /* Warning Orange */
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .modal-content p {
+            color: #ccc;
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .github-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            text-decoration: none;
+            color: white;
+            background: #24292e;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .github-btn:hover {
+            background: #2f363d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content .action-btn {
+            margin-top: 1.5rem;
+            background: linear-gradient(135deg, var(--primary, #007bff), var(--accent, #0056b3));
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .modal-content .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Only show if we haven't shown it in this session to avoid annoyance? 
+            // User requested explicit popup, so maybe show every time for now as per "IT SHOULD SHOW A POP UP"
+
+            const modal = document.getElementById('limitation-modal');
+            const closeBtn = document.getElementById('close-modal-btn');
+
+            if (modal && closeBtn) {
+                // Show modal automatically after a short delay
+                setTimeout(() => {
+                    modal.classList.add('active');
+                }, 800);
+
+                // Close on button click
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+
+                // Close on outside click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+
 
     <script>
         window.__IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
