@@ -1205,6 +1205,10 @@ if (retroFooter && typeof gsap !== 'undefined' && typeof Flip !== 'undefined') {
         setTimeout(() => {
             flashBurst.classList.remove('active'); if (globalFlash) globalFlash.classList.remove('active');
             const ctx = canvas.getContext('2d'); canvas.width = 800; canvas.height = 800; ctx.translate(800, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0, 800, 800); ctx.setTransform(1, 0, 0, 1, 0, 0); lastPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+            // Stop camera after capturing
+            stopVideo();
+
             if (window.innerWidth > 900) {
                 const photo = document.createElement('div'); photo.className = 'photo-card'; const photoImg = document.createElement('img'); photoImg.src = lastPhotoDataUrl; photo.appendChild(photoImg); stage1Container.appendChild(photo);
                 setTimeout(() => { sfx('eject'); photo.classList.add('visible'); cameraScene.classList.add('recoiling'); setTimeout(() => photoImg.classList.add('developed'), 100); setTimeout(() => cameraScene.classList.remove('recoiling'), 200); isBusy = false; shutter.classList.remove('disabled'); }, 50);
